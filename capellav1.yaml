@@ -1,0 +1,14 @@
+name: Capella v1
+fc: 9.65E9
+B: 5.0E8
+inc_angle_deg: 45.0
+altitude: 525000.0
+Pt: 600.0
+f_prf: 5000.0
+Tpd: 2.0E-5
+Gt_dB: 48.0
+Gr_dB: 48.0
+beta_x_deg: 0.39
+beta_y_deg: 1.65
+temp_dir: C:\Temp\eecs800_sar_capella\
+path_dir: C:\git\eecs800\

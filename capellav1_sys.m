@@ -1,3 +1,5 @@
+% Script which creates the Capella V1 radar yaml system file
+
 sys.name = 'Capella v1'
 sys.fc = 9.65e9;
 sys.B = 500e6;
@@ -18,5 +20,5 @@ sys.temp_dir = 'C:\Temp\eecs800_sar_capella\';
 addpath(fullfile(sys.path_dir));
 addpath(fullfile(sys.path_dir,'eecs800helper'));
 
-fn_capella_sys = fullfile(sys.temp_dir,'capella.yaml');
+fn_capella_sys = fullfile(sys.path_dir,'eecs800helper','capellav1.yaml');
 yaml.dumpFile(fn_capella_sys, sys,'block');
