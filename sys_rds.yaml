@@ -1,11 +1,11 @@
 name: rds
 fc: 1.95E8
-B: 3.0E7
-inc_angle_deg: 30.0
-inc_angle: 0.5235987755982988
+B: 6.0E7
+inc_angle_deg: 45.0
+inc_angle: 0.7853981633974483
 altitude: 500.0
 Pt: 1000.0
-f_prf: 10000.0
+f_prf: 500.0
 Tpd: 1.0E-5
 Gt_dB: 6.0
 Gt: 3.9810717055349722
@@ -18,6 +18,6 @@ beta_x: 2.0943951023931953
 beta_y_deg: 180.0
 beta_y: 3.141592653589793
 vel: 125.0
+fs: 3.0E8
 path_dir: C:\git\eecs800\
 temp_dir: C:\Temp\eecs800_sar_rds\
-fs: 3.0E8
