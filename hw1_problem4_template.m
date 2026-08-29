@@ -42,8 +42,8 @@ dx = raw.x(2)-raw.x(1);
 % is centered at t_ref and the raw.time axis does not start at 0.
 % HERE
 
-% time_pc: create a time axis associated with the pulse compression output
-% HERE
+% time_pc: time axis associated with the pulse compression output
+time_pc = time;
 
 % range_pc: create a range axis associated with the pulse compression time
 % axis

@@ -176,8 +176,9 @@ target.sigma_RCS = [1];
 
 % ref: Define reference pulse compression waveform (V) with time. The pulse
 % should be centered on the scene center, t_ref. The window function should
-% use fasttime_fh(t)
-% HERE
+% use fasttime_fh(t).
+ref = fasttime_fh((time-t_ref)/sys.Tpd) .* exp(1i*pi*Kr*(time-t_ref).^2);
+
 %% 3.9 Simulator loop
 
 % data: Preallocate raw data matrix
@@ -210,7 +211,7 @@ for t_idx = 1:size(target.pos,2)
   % 2. be weighted by the slowtime_fh(squint_angle) window with a width specified by sys.beta_x
   % 3. be at complex baseband
   % 4. include the carrier phase delay term
-  % 5. include the chirp term (similar to the ref above)
+  % 5. include the chirp term (refer to "ref" above)
   % HERE
 
 end
