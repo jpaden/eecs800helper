@@ -63,7 +63,7 @@ sys.temp_dir = my_temp_dir;
 % Pn: noise power in W
 % HERE
 
-% Pn: noise power in dBW
+% Pn_dB: noise power in dBW
 % HERE
 
 %% 2.4 Orbital velocity, sys.vel
@@ -79,7 +79,7 @@ sys.temp_dir = my_temp_dir;
 % sigma_NESZ: Noise equivalent sigma zero (NESZ) 1/m^2
 % HERE
 
-% sigma_NESZ: Noise equivalent sigma zero (NESZ) dB/m^2
+% sigma_NESZ_dB: Noise equivalent sigma zero (NESZ) dB/m^2
 % HERE
 
 %% 2.6 SAR along-track (x-dimension) sample spacing, dx

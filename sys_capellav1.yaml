@@ -6,7 +6,7 @@ inc_angle: 0.7853981633974483
 altitude: 525000.0
 Pt: 600.0
 f_prf: 5000.0
-Tpd: 4.0E-5
+Tpd: 2.0E-5
 Gt_dB: 48.0
 Gt: 63095.7344480193
 Gr_dB: 48.0
@@ -17,6 +17,6 @@ beta_x_deg: 0.39
 beta_x: 0.006806784082777885
 beta_y_deg: 1.65
 beta_y: 0.028797932657906436
+vel: 7565.0
 path_dir: C:\git\eecs800\
 temp_dir: C:\Temp\eecs800_sar_capella\
-vel: 7565.0
