@@ -2,12 +2,18 @@
 %
 % SAR pulse compression
 
+clear
+
 my_path_dir = 'C:\git\eecs800\'; % Update this if needed
 my_temp_dir = 'C:\Temp\eecs800_sar_rds\'; % Update this if needed
 
 path(pathdef)
 addpath(fullfile(my_path_dir));
 addpath(fullfile(my_path_dir,'eecs800helper'));
+
+if ~exist(my_temp_dir,'dir')
+  mkdir(my_temp_dir);
+end
 
 physical_constants;
 
@@ -28,7 +34,7 @@ dt = raw.time(2)-raw.time(1);
 Nx = length(raw.x);
 dx = raw.x(2)-raw.x(1);
 
-% HERE: Copy contents from:
+% HERE: Copy contents from these sections and reference raw.time and raw.x instead of time and x:
 % HERE: 3.3 Define dependent image parameters
 % HERE: 3.7 Define dependent axes
 
@@ -43,7 +49,7 @@ dx = raw.x(2)-raw.x(1);
 % HERE
 
 % time_pc: time axis associated with the pulse compression output
-time_pc = time;
+time_pc = raw.time;
 
 % range_pc: create a range axis associated with the pulse compression time
 % axis
@@ -92,7 +98,7 @@ ylabel('Relative power (dB)');
 % max_val,max_idx: Find the peak value and peak index from each range line
 % HERE
 
-% max_phase: Unwrap the phase of the max_val and normalize so that the
+% measured_phase: Unwrap the phase of the max_val and normalize so that the
 % maximum phase is zero
 % HERE
 
@@ -106,13 +112,13 @@ ylabel('Relative power (dB)');
 % 3. Expected time from td
 % 4. Expected phase from td
 h_fig = figure(6); set(h_fig,'WindowStyle','docked'); clf;
-plot(x, (time_pc(max_idx) - min(target.td(:,1)))*1e6); % Measured time
+plot(raw.x, (time_pc(max_idx) - min(target.td(:,1)))*1e6); % Measured time
 hold on
-plot(x, -measured_phase/(2*pi*sys.fc)*1e6,'x'); % Measured phase (converted to time)
-plot(x, (target.td(:,1) - min(target.td(:,1)))*1e6,'o') % Expected time
-plot(x, -expected_phase/(2*pi*sys.fc)*1e6,'+') % Expected phase (converted to time)
+plot(raw.x, -measured_phase/(2*pi*sys.fc)*1e6,'x'); % Measured phase (converted to time)
+plot(raw.x, (target.td(:,1) - min(target.td(:,1)))*1e6,'o') % Expected time
+plot(raw.x, -expected_phase/(2*pi*sys.fc)*1e6,'+') % Expected phase (converted to time)
 grid('on');
-xlim([x(1) x(end)]);
+xlim([raw.x(1) raw.x(end)]);
 title('Compare measured and expected time and phase');
 xlabel('Along-track (m)')
 ylabel('Time delay ({\mu}s)')
@@ -121,23 +127,25 @@ legend('Measured Time','Measured Phase', 'Expected Time','Expected Phase','locat
 
 % This only works properly if previous section works
 
-% expected_kx: Numerically calculate the instantaneous angular spatial
+% kx_measured: Numerically calculate the instantaneous angular spatial
 % frequency (i.e. wavenumber kx)
-kx_measured = diff(measured_phase) ./ diff(x);
-x_measured = (x(1:end-1)+x(2:end))/2; % x-position of kx_measured vector
+kx_measured = diff(measured_phase) ./ diff(raw.x);
+
+% x_measured: The value of x corresponding to the points of kx_measured
+x_measured = (raw.x(1:end-1)+raw.x(2:end))/2; % x-position of kx_measured vector
 
 % k_fc: wavenumber at the center frequency (rad/m)
 % HERE
 
-% target_kx: wavenumber of target for each range line
+% kx_expected: wavenumber of target for each range line
 % HERE
 
 h_fig = figure(7); set(h_fig,'WindowStyle','docked'); clf;
 plot(x_measured, kx_measured);
 hold on
-plot(x, kx_expected);
+plot(raw.x, kx_expected);
 grid('on');
-xlim([x(1) x(end)]);
+xlim([raw.x(1) raw.x(end)]);
 title('k_x for target')
 xlabel('Along-track (m)')
 ylabel('k_x (rad/s)')

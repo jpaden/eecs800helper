@@ -2,12 +2,18 @@
 %
 % SAR point-target simulator to create raw/phase-history data
 
+clear
+
 my_path_dir = 'C:\git\eecs800\'; % Update this if needed
 my_temp_dir = 'C:\Temp\eecs800_sar_rds\'; % Update this if needed
 
 path(pathdef)
 addpath(fullfile(my_path_dir));
 addpath(fullfile(my_path_dir,'eecs800helper'));
+
+if ~exist(my_temp_dir,'dir')
+  mkdir(my_temp_dir);
+end
 
 physical_constants;
 
@@ -230,10 +236,19 @@ save(fn_raw,'raw','sys','img','target','-v7.3','-nocompression');
 %% 3.11 Time vs space image plot in figure 1
 
 h_fig = figure(1); set(h_fig,'WindowStyle','docked'); clf;
+subplot(1,2,1);
 imagesc(x,time*1e6,db(data));
 hcolor = colorbar;
 set(get(hcolor,'YLabel'),'String','Relative power (dB)');
 caxis([-30 0]);
+title('Raw data')
+xlabel('Along-track position (m)');
+ylabel('Time ({\mu}s)');
+  
+subplot(1,2,2);
+imagesc(x,time*1e6,angle(data));
+hcolor = colorbar;
+set(get(hcolor,'YLabel'),'String','Phase (rad)');
 title('Raw data')
 xlabel('Along-track position (m)');
 ylabel('Time ({\mu}s)');

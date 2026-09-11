@@ -5,7 +5,7 @@ inc_angle_deg: 45.0
 inc_angle: 0.7853981633974483
 altitude: 500.0
 Pt: 1000.0
-f_prf: 500.0
+f_prf: 375.0
 Tpd: 1.0E-5
 Gt_dB: 6.0
 Gt: 3.9810717055349722
@@ -18,8 +18,8 @@ beta_x: 2.0943951023931953
 beta_y_deg: 180.0
 beta_y: 3.141592653589793
 vel: 125.0
-fs: 3.0E8
-fasttime_fh: '@(time_norm)tukeywin_cont(time_norm,0)'
-slowtime_fh: '@(eta_norm)tukeywin_cont(eta_norm,0)'
+fs: 7.5E7
+fasttime_fh: '@(time_norm)tukeywin_cont(time_norm,0.1)'
+slowtime_fh: '@(eta_norm)tukeywin_cont(eta_norm,0.1)'
 path_dir: C:\git\eecs800\
 temp_dir: C:\Temp\eecs800_sar_rds\

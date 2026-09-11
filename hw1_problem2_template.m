@@ -2,6 +2,8 @@
 % 
 % Radar equation link budget, along-track SAR resolution/sampling
 
+clear
+
 my_path_dir = 'C:\git\eecs800\'; % Update this if needed
 my_temp_dir = 'C:\Temp\eecs800_sar_capella\'; % Update this if needed
 
@@ -9,30 +11,34 @@ path(pathdef)
 addpath(fullfile(my_path_dir));
 addpath(fullfile(my_path_dir,'eecs800helper'));
 
+if ~exist(my_temp_dir,'dir')
+  mkdir(my_temp_dir);
+end
+
 physical_constants;
 
 fn_sys = fullfile(my_path_dir,'eecs800helper','sys_capellav1.yaml');
 sys = yaml.loadFile(fn_sys);
 sys.path_dir = my_path_dir;
 sys.temp_dir = my_temp_dir;
-%% 2.1 Expected receiver power, Pr and Pr_dB
+%% 2.1 Expected receiver power for point target, Pr and Pr_dB
 
 % R: magnitude of range vector to target
-% HERE R = sys.altitude / cosd(sys.inc_angle_deg);
+% HERE (EXAMPLE: "R = sys.altitude / cosd(sys.inc_angle_deg);")
 
 % sigma_RCS: radar cross section of point target
-% HERE sigma_RCS = 1;
+% HERE (EXAMPLE: "sigma_RCS = 1;")
 
 % lambda_c: wavelength at the center frequency
-% HERE lambda_c = c / sys.fc;
+% HERE (EXAMPLE: "lambda_c = c / sys.fc;")
 
-% Pr: received signal power in W
+% Pr_point: received signal power in W
 % HERE
 
-% Pr_dB: received signal power in dBW
+% Pr_point_dB: received signal power in dBW
 % HERE
 
-%% 2.2 Expected receiver power, Pr and Pr_dB
+%% 2.2 Expected receiver power for area normalized target, Pr and Pr_dB
 
 % R: magnitude of range vector to target
 % HERE
@@ -60,7 +66,7 @@ sys.temp_dir = my_temp_dir;
 
 %% 2.3 Expected noise power, Pn and Pn_dB
 
-% Pn: noise power in W
+% Pn: noise power in W (use 290K for the temperature since that is the standard)
 % HERE
 
 % Pn_dB: noise power in dBW
@@ -93,10 +99,10 @@ sys.temp_dir = my_temp_dir;
 % k: magnitude of the wavenumber at the center frequency
 % HERE
 
-% kx_min: minimum along-track (x-dim) wavenumber
+% kx_min: minimum along-track (x-dim) wavenumber for the beamwidth sys.beta_X
 % HERE
 
-% kx_max: maximum along-track (x-dim) wavenumber
+% kx_max: maximum along-track (x-dim) wavenumber for the beamwidth sys.beta_X
 % HERE
 
 %% 2.8 Nyquist sampling rate, dx_max
