@@ -137,7 +137,8 @@ x_measured = (raw.x(1:end-1)+raw.x(2:end))/2; % x-position of kx_measured vector
 % k_fc: wavenumber at the center frequency (rad/m)
 % HERE
 
-% kx_expected: wavenumber of target for each range line
+% kx_expected: wavenumber (at the center frequency) of first target for
+% each range line
 % HERE
 
 h_fig = figure(7); set(h_fig,'WindowStyle','docked'); clf;

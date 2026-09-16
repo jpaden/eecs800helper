@@ -132,7 +132,9 @@ target.sigma_RCS = [1];
 % x: Radar's x-position or along-track position for the simulated data.
 % Should be a row-vector. Start half a SAR aperture before the first (in
 % the x-dim) image pixel and continue half a SAR aperture past the last
-% image pixel. The origin should be the image/scene center.
+% image pixel. The origin should be the image/scene center. For
+% convenience, ensure full support by using floor() for the start and
+% ceil() for the end. This will also ensure that x has a sample at x == 0.
 % HERE
 
 % Nx: The length of the along-track vector
