@@ -17,17 +17,14 @@ end
 
 physical_constants;
 
-% fasttime_fh: Fast time time-domain window function handle
-fasttime_fh = @(time_norm) tukeywin_cont(time_norm,0);
-
-% slowtime_fh: Slow time beam pattern window function handle
-slowtime_fh = @(eta_norm) tukeywin_cont(eta_norm,0);
 %% 3.1 Load radar parameters
 
 fn_sys = fullfile(my_path_dir,'eecs800helper','sys_rds.yaml');
 sys = yaml.loadFile(fn_sys);
 sys.path_dir = my_path_dir;
 sys.temp_dir = my_temp_dir;
+sys.fasttime_fh = str2func(sys.fasttime_fh );
+sys.slowtime_fh = str2func(sys.slowtime_fh );
 %% 3.2 Load image parameters
 
 fn_img = fullfile(my_path_dir,'eecs800helper','img_rds.yaml');
@@ -184,8 +181,8 @@ target.sigma_RCS = [1];
 
 % ref: Define reference pulse compression waveform (V) with time. The pulse
 % should be centered on the scene center, t_ref. The window function should
-% use fasttime_fh(t).
-ref = fasttime_fh((time-t_ref)/sys.Tpd) .* exp(1i*pi*Kr*(time-t_ref).^2);
+% use sys.fasttime_fh(t).
+ref = sys.fasttime_fh((time-t_ref)/sys.Tpd) .* exp(1i*pi*Kr*(time-t_ref).^2);
 
 %% 3.9 Simulator loop
 
@@ -216,7 +213,7 @@ for t_idx = 1:size(target.pos,2)
   % data = data + [target-contribution]
   % [target-contribution] should:
   % 1. include the target.sigma_RCS
-  % 2. be weighted by the slowtime_fh(squint_angle) window with a width specified by sys.beta_x
+  % 2. be weighted by the sys.slowtime_fh(squint_angle) window with a width specified by sys.beta_x
   % 3. be at complex baseband
   % 4. include the carrier phase delay term
   % 5. include the chirp term (refer to "ref" above)
@@ -257,6 +254,7 @@ ylabel('Time ({\mu}s)');
 %% 3.12 Range vs slow-time image plot in figure 2
 
 h_fig = figure(2); set(h_fig,'WindowStyle','docked'); clf;
+subplot(1,2,1);
 imagesc(eta,time*c/2,db(data));
 hcolor = colorbar;
 set(get(hcolor,'YLabel'),'String','Relative power (dB)');
@@ -264,3 +262,13 @@ caxis([-30 0]);
 title('Raw data')
 xlabel('Slow/azimuth time (sec)');
 ylabel('Range (m)');
+  
+subplot(1,2,2);
+imagesc(eta,time*c/2,angle(data));
+hcolor = colorbar;
+set(get(hcolor,'YLabel'),'String','Phase (rad)');
+title('Raw data')
+xlabel('Along-track position (m)');
+ylabel('Time ({\mu}s)');
+
+hw1_problem3_check

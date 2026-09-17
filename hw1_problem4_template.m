@@ -22,7 +22,7 @@ pc_window_fh = @(time_norm) tukeywin_cont(time_norm,0);
 %% 4.1 Load raw data parameters
 
 fn_sys = fullfile(my_temp_dir,'raw_rds.mat');
-load(fn_sys); % Loads sys, img, and raw
+load(fn_sys); % Loads sys, img, raw, and target
 sys.path_dir = my_path_dir;
 sys.temp_dir = my_temp_dir;
 %% 4.2 Define dependent image parameters and axes
@@ -151,3 +151,5 @@ title('k_x for target')
 xlabel('Along-track (m)')
 ylabel('k_x (rad/s)')
 legend('Measured k_x','Expected k_x','location','best')
+
+hw1_problem4_check

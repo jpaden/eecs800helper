@@ -73,7 +73,10 @@ for arg_idx = 1:2:numel(varargin)
 end
 
 %% Reference answers
-% Columns: {section, name, kind, size, value/norm, first element, last element, alias}
+% Columns: {section, name, kind, size, value/norm, first element, last element, alias[, tol_pct]}
+%   tol_pct (optional 9th column) overrides the 'tol_pct' option for that row;
+%   leave it [] to use the option. Use it where a common mistake lands
+%   inside the default tolerance.
 %   kind 's' -> scalar,        value/norm is the signed value
 %   kind 'a' -> vector/matrix, value/norm is the Frobenius norm
 
@@ -172,7 +175,18 @@ fprintf(' Tolerance: %.3g%% on values and norms', opt.tol_pct);
 if any(strcmp(ref(:,3),'d'))
   fprintf(', %.3g dB on dB values', opt.tol_dB);
 end
-fprintf('.\n Scalars show their value; arrays show their Frobenius norm.\n');
+fprintf('.\n');
+if size(ref,2) >= 9
+  tight = find(~cellfun(@isempty, ref(:,9))).';
+  if ~isempty(tight)
+    fprintf(' Tighter tolerance on:');
+    for idx = tight
+      fprintf(' %s (%.3g%%)', ref{idx,2}, ref{idx,9});
+    end
+    fprintf('.\n');
+  end
+end
+fprintf(' Scalars show their value; arrays show their Frobenius norm.\n');
 fprintf('==================================================================================\n');
 if opt.show_expected
   fprintf('%-5s %-14s %-12s %15s %15s %10s  %s\n', ...
@@ -192,6 +206,10 @@ for idx = 1:size(ref,1)
   e_val  = ref{idx,5};
   e_frst = ref{idx,6};
   e_last = ref{idx,7};
+  tol    = opt.tol_pct;             % per-row override in optional column 9
+  if size(ref,2) >= 9 && ~isempty(ref{idx,9})
+    tol = ref{idx,9};
+  end
 
   note     = '';
   pct      = NaN;
@@ -243,7 +261,7 @@ for idx = 1:size(ref,1)
           ok     = db_err <= opt.tol_dB;
         else
           db_err = NaN;
-          ok     = pct <= opt.tol_pct;
+          ok     = pct <= tol;
         end
 
         if ok
@@ -255,7 +273,7 @@ for idx = 1:size(ref,1)
           if strcmp(kind,'d')
             note = add_note(note, sprintf('off by %.4g dB', db_err));
           else
-            note = add_note(note, ratio_hint(val, e_val, opt.tol_pct));
+            note = add_note(note, ratio_hint(val, e_val, tol));
           end
         end
 
@@ -277,9 +295,9 @@ for idx = 1:size(ref,1)
           end
         end
 
-        if pct > opt.tol_pct
+        if pct > tol
           ok   = false;
-          note = add_note(note, ['norm ' ratio_hint(fro, e_val, opt.tol_pct)]);
+          note = add_note(note, ['norm ' ratio_hint(fro, e_val, tol)]);
         end
 
         % endpoints catch a reversed or mis-started axis with the right norm
@@ -294,7 +312,7 @@ for idx = 1:size(ref,1)
             ok   = false;
             note = add_note(note, endpoint_note('last', pct_l));
           end
-          if ~ok_f && ~ok_l && pct <= opt.tol_pct
+          if ~ok_f && ~ok_l && pct <= tol
             note = add_note(note, 'norm is right, so check order/orientation');
           end
         end

@@ -66,42 +66,45 @@ for arg_idx = 1:2:numel(varargin)
 end
 
 %% Reference answers
-% Columns: {section, name, kind, size, value/norm, first element, last element, alias}
+% Columns: {section, name, kind, size, value/norm, first element, last element, alias[, tol_pct]}
+%   tol_pct (optional 9th column) overrides the 'tol_pct' option for that row;
+%   leave it [] to use the option. Use it where a common mistake lands
+%   inside the default tolerance.
 %   kind 's' -> scalar,        value/norm is the signed value
 %   kind 'a' -> vector/matrix, value/norm is the Frobenius norm
 
 ref = { ...
-  '3.3', 'lambda_fc', 's', [1 1],        1.53739722051459,      0, 0, '';
-  '3.3', 'sigma_r',   's', [1 1],        2.49827048333621,      0, 0, '';
-  '3.3', 'r_ref',     's', [1 1],        707.106781186547,      0, 0, '';
-  '3.3', 't_ref',     's', [1 1],        4.71730867349394e-06,  0, 0, '';
-  '3.3', 'r0',        's', [1 1],        644.606781186547,      0, 0, '';
-  '3.3', 'r1',        's', [1 1],        769.606781186547,      0, 0, '';
-  '3.3', 'L_sar',     's', [1 1],        236.638265257076,      0, 0, '';
-  '3.5', 't0',        's', [1 1],        -7e-07,                0, 0, '';
-  '3.5', 't1',        's', [1 1],        1.01966666666667e-05,  0, 0, '';
-  '3.5', 'dt',        's', [1 1],        3.33333333333333e-09,  0, 0, '';
-  '3.5', 'time',      'a', [3270 1],     0.000325735062674493,  -7e-07,                1.01966666666667e-05,  '';
-  '3.5', 'Nt',        's', [1 1],        3270,                  0, 0, '';
-  '3.6', 'dx',        's', [1 1],        0.25,                  0, 0, '';
-  '3.6', 'x',         'a', [1 1449],     3980.63044629868,      -181,                  181,                   '';
-  '3.6', 'Nx',        's', [1 1],        1449,                  0, 0, '';
-  '3.6', 'y',         'a', [1 1449],     19032.8663106743,      500,                   500,                   '';
-  '3.6', 'z',         'a', [1 1449],     19032.8663106743,      500,                   500,                   '';
-  '3.7', 'df',        's', [1 1],        91743.119266055,       0, 0, '';
-  '3.7', 'freq',      'a', [3270 1],     4952272668.90222,      0,                     -91743.119266055,      '';
-  '3.7', 'range',     'a', [3270 1],     48826.4575480413,      -104.927360300121,     1528.44188170509,      '';
-  '3.7', 'eta',       'a', [1 1449],     31.8450435703894,      -1.448,                1.448,                 '';
-  '3.7', 'deta',      's', [1 1],        0.002,                 0, 0, '';
-  '3.7', 'dkx',       's', [1 1],        0.0173448869763412,    0, 0, '';
-  '3.7', 'kx',        'a', [1 1449],     276.174340742532,      0,                     -0.0173448869763412,   '';
-  '3.7', 'df_eta',    's', [1 1],        0.345065562456867,     0, 0, '';
-  '3.7', 'f_eta',     'a', [1 1449],     5494.31393553993,      0,                     -0.345065562456867,    '';
-  '3.8', 'Kr',        's', [1 1],        6000000000000,         0, 0, '';
-  '3.9', 'R',         'a', [1 1449],     27209.2891996465,      729.904788311462,      729.904788311462,      '';
-  '3.9', 'td',        'a', [1 1449],     0.00018152083865709,   4.86940060587262e-06,  4.86940060587262e-06,  '';
-  '3.9', 'squint_ang', 'a', [1 1449],     5.55767943059706,      0.250592037592461,     -0.250592037592461,    '';
-  '3.9', 'data',      'a', [3270 1449],  2084.94604246729,      0,                     0,                     '';
+  '3.3', 'lambda_fc', 's', [1 1],        1.53739722051459,      0, 0, '', [];
+  '3.3', 'sigma_r',   's', [1 1],        2.49827048333621,      0, 0, '', [];
+  '3.3', 'r_ref',     's', [1 1],        707.106781186547,      0, 0, '', [];
+  '3.3', 't_ref',     's', [1 1],        4.71730867349394e-06,  0, 0, '', [];
+  '3.3', 'r0',        's', [1 1],        644.606781186547,      0, 0, '', [];
+  '3.3', 'r1',        's', [1 1],        769.606781186547,      0, 0, '', [];
+  '3.3', 'L_sar',     's', [1 1],        236.638265257076,      0, 0, '', [];
+  '3.5', 't0',        's', [1 1],        -7e-07,                0, 0, '', [];
+  '3.5', 't1',        's', [1 1],        1.01966666666667e-05,  0, 0, '', 0.01;
+  '3.5', 'dt',        's', [1 1],        3.33333333333333e-09,  0, 0, '', [];
+  '3.5', 'time',      'a', [3270 1],     0.000325735062674493,  -7e-07,                1.01966666666667e-05,  '', [];
+  '3.5', 'Nt',        's', [1 1],        3270,                  0, 0, '', 0;
+  '3.6', 'dx',        's', [1 1],        0.25,                  0, 0, '', [];
+  '3.6', 'x',         'a', [1 1449],     3980.63044629868,      -181,                  181,                   '', [];
+  '3.6', 'Nx',        's', [1 1],        1449,                  0, 0, '', [];
+  '3.6', 'y',         'a', [1 1449],     19032.8663106743,      500,                   500,                   '', [];
+  '3.6', 'z',         'a', [1 1449],     19032.8663106743,      500,                   500,                   '', [];
+  '3.7', 'df',        's', [1 1],        91743.119266055,       0, 0, '', 0.01;
+  '3.7', 'freq',      'a', [3270 1],     4952272668.90222,      0,                     -91743.119266055,      '', [];
+  '3.7', 'range',     'a', [3270 1],     48826.4575480413,      -104.927360300121,     1528.44188170509,      '', [];
+  '3.7', 'eta',       'a', [1 1449],     31.8450435703894,      -1.448,                1.448,                 '', [];
+  '3.7', 'deta',      's', [1 1],        0.002,                 0, 0, '', [];
+  '3.7', 'dkx',       's', [1 1],        0.0173448869763412,    0, 0, '', [];
+  '3.7', 'kx',        'a', [1 1449],     276.174340742532,      0,                     -0.0173448869763412,   '', [];
+  '3.7', 'df_eta',    's', [1 1],        0.345065562456867,     0, 0, '', [];
+  '3.7', 'f_eta',     'a', [1 1449],     5494.31393553993,      0,                     -0.345065562456867,    '', [];
+  '3.8', 'Kr',        's', [1 1],        6000000000000,         0, 0, '', [];
+  '3.9', 'R',         'a', [1 1449],     27209.2891996465,      729.904788311462,      729.904788311462,      '', [];
+  '3.9', 'td',        'a', [1 1449],     0.00018152083865709,   4.86940060587262e-06,  4.86940060587262e-06,  '', [];
+  '3.9', 'squint_ang', 'a', [1 1449],     5.55767943059706,      0.250592037592461,     -0.250592037592461,    '', [];
+  '3.9', 'data',      'a', [3270 1449],  2084.94604246729,      0,                     0,                     '', [];
   };
 
 %% Snapshot the variables of interest
@@ -165,7 +168,18 @@ fprintf(' Tolerance: %.3g%% on values and norms', opt.tol_pct);
 if any(strcmp(ref(:,3),'d'))
   fprintf(', %.3g dB on dB values', opt.tol_dB);
 end
-fprintf('.\n Scalars show their value; arrays show their Frobenius norm.\n');
+fprintf('.\n');
+if size(ref,2) >= 9
+  tight = find(~cellfun(@isempty, ref(:,9))).';
+  if ~isempty(tight)
+    fprintf(' Tighter tolerance on:');
+    for idx = tight
+      fprintf(' %s (%.3g%%)', ref{idx,2}, ref{idx,9});
+    end
+    fprintf('.\n');
+  end
+end
+fprintf(' Scalars show their value; arrays show their Frobenius norm.\n');
 fprintf('==================================================================================\n');
 if opt.show_expected
   fprintf('%-5s %-14s %-12s %15s %15s %10s  %s\n', ...
@@ -185,6 +199,10 @@ for idx = 1:size(ref,1)
   e_val  = ref{idx,5};
   e_frst = ref{idx,6};
   e_last = ref{idx,7};
+  tol    = opt.tol_pct;             % per-row override in optional column 9
+  if size(ref,2) >= 9 && ~isempty(ref{idx,9})
+    tol = ref{idx,9};
+  end
 
   note     = '';
   pct      = NaN;
@@ -236,7 +254,7 @@ for idx = 1:size(ref,1)
           ok     = db_err <= opt.tol_dB;
         else
           db_err = NaN;
-          ok     = pct <= opt.tol_pct;
+          ok     = pct <= tol;
         end
 
         if ok
@@ -248,7 +266,7 @@ for idx = 1:size(ref,1)
           if strcmp(kind,'d')
             note = add_note(note, sprintf('off by %.4g dB', db_err));
           else
-            note = add_note(note, ratio_hint(val, e_val, opt.tol_pct));
+            note = add_note(note, ratio_hint(val, e_val, tol));
           end
         end
 
@@ -270,9 +288,9 @@ for idx = 1:size(ref,1)
           end
         end
 
-        if pct > opt.tol_pct
+        if pct > tol
           ok   = false;
-          note = add_note(note, ['norm ' ratio_hint(fro, e_val, opt.tol_pct)]);
+          note = add_note(note, ['norm ' ratio_hint(fro, e_val, tol)]);
         end
 
         % endpoints catch a reversed or mis-started axis with the right norm
@@ -287,7 +305,7 @@ for idx = 1:size(ref,1)
             ok   = false;
             note = add_note(note, endpoint_note('last', pct_l));
           end
-          if ~ok_f && ~ok_l && pct <= opt.tol_pct
+          if ~ok_f && ~ok_l && pct <= tol
             note = add_note(note, 'norm is right, so check order/orientation');
           end
         end

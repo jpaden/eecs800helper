@@ -1,8 +1,8 @@
 name: rds
 fc: 1.95E8
 B: 6.0E7
-inc_angle_deg: 45.0
-inc_angle: 0.7853981633974483
+inc_angle_deg: 40.0
+inc_angle: 0.6981317007977318
 altitude: 500.0
 Pt: 1000.0
 f_prf: 375.0
