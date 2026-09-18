@@ -1,4 +1,4 @@
-% 2026 EECS 800 hw1 problem 3 radar simulator
+% 2026 EECS 800 hw2 problem 1 radar simulator
 %
 % SAR point-target simulator to create raw/phase-history data
 %
@@ -43,22 +43,21 @@ physical_constants; % Loads c, Boltzmann's constant, e0, u0, etc.
 
 %% 2. Load radar parameters
 
-fn_sys = fullfile(my_path_dir,'eecs800helper','sys_rds.yaml');
+fn_sys = fullfile(my_path_dir,'eecs800helper','sys_rds_hw2.yaml');
 sys = yaml.loadFile(fn_sys);
 sys.path_dir = my_path_dir;
 sys.temp_dir = my_temp_dir;
 sys.fasttime_fh = str2func(sys.fasttime_fh);
 sys.slowtime_fh = str2func(sys.slowtime_fh);
+
 %% 3. Load image parameters
 
-fn_img = fullfile(my_path_dir,'eecs800helper','img_rds.yaml');
+fn_img = fullfile(my_path_dir,'eecs800helper','img_rds_hw2.yaml');
 img = yaml.loadFile(fn_img);
+
 %% 4. Define dependent image parameters
 
 % lambda_fc: wavelength at center frequency (m)
-% HERE
-
-% sigma_r: range resolution (m)
 % HERE
 
 % r_ref: Range of closest approach for the range-midpoint (reference) of
@@ -84,17 +83,54 @@ img = yaml.loadFile(fn_img);
 % frequency, and the desired image along-track resolution (m) specified in
 % the img structure.
 % HERE
+
 %% 5. Define target(s)
 
 % target.pos: (3,N_targets) matrix
 % * rows: x,y,z
 % * columns: each column is a separate point target
 % target.sigma_RCS: (1,N_targets) vector
-target.pos = [ ...
-  0
-  0
-  0];
-target.sigma_RCS = [1];
+if 0
+  % Near range, start along-track (4.5 pixels from each border)
+  target.pos = [ ...
+    img.dx*-45.5
+    img.dr*45.5*sin(sys.inc_angle)
+    img.dr*45.5*cos(sys.inc_angle)];
+  target.sigma_RCS = [1];
+
+elseif 0
+  % Far range, start along-track (4.5 pixels from each border)
+  target.pos = [ ...
+    img.dx*-45.5
+    img.dr*-44.5*sin(sys.inc_angle)
+    img.dr*-44.5*cos(sys.inc_angle)];
+  target.sigma_RCS = [1];
+
+elseif 0
+  % Near range, end along-track (4.5 pixels from each border)
+  target.pos = [ ...
+    img.dx*44.5
+    img.dr*45.5*sin(sys.inc_angle)
+    img.dr*45.5*cos(sys.inc_angle)];
+  target.sigma_RCS = [1];
+
+elseif 0
+  % Far range, end along-track (4.5 pixels from each border)
+  target.pos = [ ...
+    img.dx*44.5
+    img.dr*-44.5*sin(sys.inc_angle)
+    img.dr*-44.5*cos(sys.inc_angle)];
+  target.sigma_RCS = [1];
+
+else
+  % Scene center
+  target.pos = [ ...
+    img.dx*0
+    img.dr*0*sin(sys.inc_angle)
+    img.dr*0*cos(sys.inc_angle)];
+  target.sigma_RCS = [1];
+end
+
 %% 6. Create time axis
 
 % t0: time of first arrival from the near side of the image swath. Define
@@ -130,7 +166,8 @@ target.sigma_RCS = [1];
 
 % Nt: The length of the time vector. time should be size Nt,1
 % HERE
-%% 7. Create radar trajectory spatial axes
+
+%% 7. Create space axis
 
 % dx: Define the range line spacing from sys.vel and sys.f_prf. It is the
 % distance the radar travels from one pulse to the next.
@@ -155,41 +192,13 @@ target.sigma_RCS = [1];
 % z: Radar's z-position or elevation position. The elevation position is
 % the offset from the scene center using sys.altitude. Should be size 1,Nx
 % HERE
+
 %% 8. Define dependent axes
-
-% df: frequency domain spacing (Hz)
-% HERE
-
-% freq: baseband frequency axis (Hz). This should be a column vector since
-% it is a fast-time axis. This should be ifftshift so it aligns with the
-% fft output sample ordering.
-% HERE
-
-% range: create the range axis corresponding to the time axis (m)
-% HERE
 
 % eta: Define slow-time axis of simulated data. Should be aligned with the
 % x-vector. Assume constant velocity sys.vel.
 % HERE
 
-% deta: Define slow-time step size from dx and sys.vel.
-% HERE
-
-% dkx: wavenumber domain spacing (rad/m)
-% HERE
-
-% kx: wavenumber (spatial angular frequency) axis (rad/m). This should be a
-% row vector since it is a slow-time axis. This should be ifftshift so
-% it aligns with the fft output sample ordering.
-% HERE
-
-% df_eta: doppler frequency domain spacing (Hz)
-% HERE
-
-% f_eta: doppler frequency axis, eta is slow time variable (Hz). This
-% should be a row vector since it is a slow-time axis. This should be
-% ifftshift so it aligns with the fft output sample ordering.
-% HERE
 %% 9. Define linear FM chirp
 
 % Kr: fast time chirp rate (Hz/sec) from sys.B and sys.Tpd
@@ -198,7 +207,7 @@ target.sigma_RCS = [1];
 % ref: Define reference pulse compression waveform (V) with time. The pulse
 % should be centered on the scene center, t_ref. The window function should
 % use sys.fasttime_fh(t).
-ref = sys.fasttime_fh((time-t_ref)/sys.Tpd) .* exp(1i*pi*Kr*(time-t_ref).^2);
+% HERE
 
 %% 10. Simulator loop
 
@@ -218,7 +227,7 @@ for t_idx = 1:size(target.pos,2)
   % HERE
 
   % Store the result in target.td for debugging later
-  target.td(:,t_idx) = td;
+  % HERE
 
   % squint_ang: Calculate the instantaneous squint angle for each radar
   % position to the target
@@ -234,6 +243,7 @@ for t_idx = 1:size(target.pos,2)
   % HERE
 
 end
+
 %% 11. Save simulation data
 
 raw = [];
@@ -244,10 +254,11 @@ raw.data = data;
 raw.time = time;
 raw.ref = ref;
 
-fn_raw = fullfile(sys.temp_dir,'raw_rds.mat');
+fn_raw = fullfile(sys.temp_dir,'raw_rds_hw2.mat');
 save(fn_raw,'raw','sys','img','target','-v7.3','-nocompression');
-%% 12. Time vs space image plot in figure 1
 
+%% 12. Time vs space image plot in figure 1
+  
 h_fig = figure(1); set(h_fig,'WindowStyle','docked'); clf;
 subplot(1,2,1);
 imagesc(x,time*1e6,db(data));
@@ -265,6 +276,7 @@ set(get(hcolor,'YLabel'),'String','Phase (rad)');
 title('Raw data')
 xlabel('Along-track position (m)');
 ylabel('Time ({\mu}s)');
+
 %% 13. Range vs slow-time image plot in figure 2
 
 h_fig = figure(2); set(h_fig,'WindowStyle','docked'); clf;
@@ -285,4 +297,4 @@ title('Raw data')
 xlabel('Along-track position (m)');
 ylabel('Time ({\mu}s)');
 
-hw1_problem3_check
+hw2_problem1_check;

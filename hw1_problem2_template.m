@@ -17,7 +17,7 @@ if ~exist(my_temp_dir,'dir')
   mkdir(my_temp_dir);
 end
 
-physical_constants;
+physical_constants; % Loads c, Boltzmann's constant, e0, u0, etc.
 
 fn_sys = fullfile(my_path_dir,'eecs800helper','sys_capellav1.yaml');
 sys = yaml.loadFile(fn_sys);

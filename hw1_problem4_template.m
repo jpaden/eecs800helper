@@ -39,7 +39,7 @@ if ~exist(my_temp_dir,'dir')
   mkdir(my_temp_dir);
 end
 
-physical_constants;
+physical_constants; % Loads c, Boltzmann's constant, e0, u0, etc.
 
 % pc_window_fh: Fast time time-domain window function handle
 pc_window_fh = @(time_norm) tukeywin_cont(time_norm,0);
@@ -51,11 +51,16 @@ sys.path_dir = my_path_dir;
 sys.temp_dir = my_temp_dir;
 %% 3. Define dependent image parameters and axes
 
-% Redefine Nt, dt, Nx, and dx from raw.time and raw.x
+% Nt: Redefine from raw.time
 Nt = length(raw.time);
+
+% dt: Redefine from raw.time
 dt = raw.time(2)-raw.time(1);
 
+% Nx: Redefine from raw.x
 Nx = length(raw.x);
+
+% dx: Redefine from raw.x
 dx = raw.x(2)-raw.x(1);
 
 % HERE: Copy contents from these hw1_problem3 sections and reference raw.time and raw.x instead of time and x:
