@@ -1,6 +1,30 @@
 % 2026 EECS 800 hw1 problem 4 radar simulator
 %
 % SAR pulse compression
+%
+% Slow-time (SAR) coordinate system
+% * x is along-track (assumed straight and level flight path)
+% * z is elevation projected on the plane that is orthogonal to the
+% along-track (points to the zenith for straight and level flight paths)
+% * y completes the right handed coordinate system (so points left)
+% * [x,y,z].' origin is at the image/scene center (aka image reference
+% point) so that [x,y,z] points from the image/scene center to the radar
+% positions
+% * eta is slow-time axis and should be aligned with the x-axis. Origin at
+% scene center.
+%
+% Fast-time coordinate system
+% * time is fast-time axis with its origin as the center of the transmit
+% pulse when it is transmitted
+% * range is the fast-time range axis and should be aligned with the time
+% axis with origin at the radar's position
+%
+% Units
+% * Always use SI units
+% * Exceptions are allowed, but variable names storing non-SI units should
+% end in the unit type (e.g. "_deg" if not using radians)
+
+%% 1. Setup
 
 clear
 
@@ -19,13 +43,13 @@ physical_constants;
 
 % pc_window_fh: Fast time time-domain window function handle
 pc_window_fh = @(time_norm) tukeywin_cont(time_norm,0);
-%% 4.1 Load raw data parameters
+%% 2. Load raw data parameters
 
 fn_sys = fullfile(my_temp_dir,'raw_rds.mat');
 load(fn_sys); % Loads sys, img, raw, and target
 sys.path_dir = my_path_dir;
 sys.temp_dir = my_temp_dir;
-%% 4.2 Define dependent image parameters and axes
+%% 3. Define dependent image parameters and axes
 
 % Redefine Nt, dt, Nx, and dx from raw.time and raw.x
 Nt = length(raw.time);
@@ -34,11 +58,11 @@ dt = raw.time(2)-raw.time(1);
 Nx = length(raw.x);
 dx = raw.x(2)-raw.x(1);
 
-% HERE: Copy contents from these sections and reference raw.time and raw.x instead of time and x:
-% HERE: 3.3 Define dependent image parameters
-% HERE: 3.7 Define dependent axes
+% HERE: Copy contents from these hw1_problem3 sections and reference raw.time and raw.x instead of time and x:
+% HERE: 3 Define dependent image parameters
+% HERE: 7 Define dependent axes
 
-%% 4.3 Pulse compression
+%% 4. Pulse compression
 
 % ref_fft: FFT of the reference pulse compression waveform raw.ref (V)
 % HERE
@@ -54,7 +78,7 @@ time_pc = raw.time;
 % range_pc: create a range axis associated with the pulse compression time
 % axis
 % HERE
-%% 4.4 Time vs space image plot in figure 3
+%% 5. Time vs space image plot in figure 3
 
 h_fig = figure(3); set(h_fig,'WindowStyle','docked'); clf;
 imagesc(raw.x,time_pc*1e6,db(data_pc));
@@ -64,7 +88,7 @@ caxis([-30 0]+max(db(data_pc(:))));
 title('Pulse compressed image')
 xlabel('Along-track position (m)');
 ylabel('Time ({\mu}s)');
-%% 4.5 Range vs slow-time image plot in figure 4
+%% 6. Range vs slow-time image plot in figure 4
 
 h_fig = figure(4); set(h_fig,'WindowStyle','docked'); clf;
 imagesc(eta,time_pc*c/2,db(data_pc));
@@ -74,7 +98,7 @@ caxis([-30 0]+max(db(data_pc(:))));
 title('Pulse compressed image')
 xlabel('Slow/azimuth time (sec)');
 ylabel('Range (m)');
-%% 4.6 Range line (a-scope) plot of range line closest to scene center in figure 5
+%% 7. Range line (a-scope) plot of range line closest to scene center in figure 5
 
 % This only produces useful results if there is an isolated target at the
 % scene center
@@ -90,7 +114,7 @@ ylim([-80 0]+max(db(data_pc(:,rline)))); % Comment these for debugging
 title('Range line at scene center');
 xlabel('Time ({\mu}s)');
 ylabel('Relative power (dB)');
-%% 4.7 Phase vs along-track and range vs along-track plot in figure 6
+%% 8. Phase vs along-track and range vs along-track plot in figure 6
 
 % This only works if there is one scatterer that is dominant in every range
 % line
@@ -123,7 +147,7 @@ title('Compare measured and expected time and phase');
 xlabel('Along-track (m)')
 ylabel('Time delay ({\mu}s)')
 legend('Measured Time','Measured Phase', 'Expected Time','Expected Phase','location','best')
-%% 4.8 Instantaneous frequency vs along-track in figure 7
+%% 9. Instantaneous frequency vs along-track in figure 7
 
 % This only works properly if previous section works
 

@@ -1,6 +1,30 @@
 % 2026 EECS 800 hw1 problem 3 radar simulator
 %
 % SAR point-target simulator to create raw/phase-history data
+%
+% Slow-time (SAR) coordinate system
+% * x is along-track (assumed straight and level flight path)
+% * z is elevation projected on the plane that is orthogonal to the
+% along-track (points to the zenith for straight and level flight paths)
+% * y completes the right handed coordinate system (so points left)
+% * [x,y,z].' origin is at the image/scene center (aka image reference
+% point) so that [x,y,z] points from the image/scene center to the radar
+% positions
+% * eta is slow-time axis and should be aligned with the x-axis. Origin at
+% scene center.
+%
+% Fast-time coordinate system
+% * time is fast-time axis with its origin as the center of the transmit
+% pulse when it is transmitted
+% * range is the fast-time range axis and should be aligned with the time
+% axis with origin at the radar's position
+%
+% Units
+% * Always use SI units
+% * Exceptions are allowed, but variable names storing non-SI units should
+% end in the unit type (e.g. "_deg" if not using radians)
+
+%% 1. Setup
 
 clear
 
@@ -17,7 +41,7 @@ end
 
 physical_constants;
 
-%% 3.1 Load radar parameters
+%% 2. Load radar parameters
 
 fn_sys = fullfile(my_path_dir,'eecs800helper','sys_rds.yaml');
 sys = yaml.loadFile(fn_sys);
@@ -25,33 +49,11 @@ sys.path_dir = my_path_dir;
 sys.temp_dir = my_temp_dir;
 sys.fasttime_fh = str2func(sys.fasttime_fh );
 sys.slowtime_fh = str2func(sys.slowtime_fh );
-%% 3.2 Load image parameters
+%% 3. Load image parameters
 
 fn_img = fullfile(my_path_dir,'eecs800helper','img_rds.yaml');
 img = yaml.loadFile(fn_img);
-%% Notes
-
-% Slow-time (SAR) coordinate system
-% * x is along-track (assumed straight and level flight path)
-% * z is elevation projected on the plane that is orthogonal to the
-% along-track (points to the zenith for straight and level flight paths)
-% * y completes the right handed coordinate system (so points left)
-% * [x,y,z].' origin is at the image/scene center (aka image reference
-% point) so that [x,y,z] points from the image/scene center to the radar
-% positions
-% * eta is slow-time axis and should be aligned with the x-axis
-
-% Fast-time coordinate system
-% * time is fast-time axis with its origin as the center of the transmit
-% pulse
-% * range is the fast-time range axis and should be aligned with the time
-% axis
-
-% Units
-% * Always use SI units
-% * Exceptions are allowed, but variable names storing non-SI units should
-% end in the unit type (e.g. "_deg" if not using radians)
-%% 3.3 Define dependent image parameters
+%% 4. Define dependent image parameters
 
 % lambda_fc: wavelength at center frequency (m)
 % HERE
@@ -79,7 +81,7 @@ img = yaml.loadFile(fn_img);
 % closest approach for the far side of the image swath, the center
 % frequency, and the desired image along-track resolution (m).
 % HERE
-%% 3.4 Define target(s)
+%% 5. Define target(s)
 
 % target.pos: (3,N_targets) matrix
 % * rows: x,y,z
@@ -90,7 +92,7 @@ target.pos = [ ...
   0
   0];
 target.sigma_RCS = [1];
-%% 3.5 Create time axis
+%% 6. Create time axis
 
 % t0: time of first arrival from the near side of the image swath. Define
 % this using the range to the near-side of the image swath and consider
@@ -115,12 +117,13 @@ target.sigma_RCS = [1];
 % HERE
 
 % time: Define time axis of simulated data to start at t0 and end at t1
-% with a sample spacing of dt. This should be a column vector.
+% with a sample spacing of dt. This should be a column vector since it is a
+% fast-time axis.
 % HERE
 
 % Nt: The length of the time vector. time should be size Nt,1
 % HERE
-%% 3.6 Create radar trajectory spatial axes
+%% 7. Create radar trajectory spatial axes
 
 % dx: Define the range line spacing from sys.vel and sys.f_prf. It is the
 % distance the radar travels from one pulse to the next.
@@ -145,12 +148,14 @@ target.sigma_RCS = [1];
 % z: Radar's z-position or elevation position. The elevation position is
 % the offset from the scene center using sys.altitude. Should be size 1,Nx
 % HERE
-%% 3.7 Define dependent axes
+%% 8. Define dependent axes
 
 % df: frequency domain spacing (Hz)
 % HERE
 
-% freq: baseband frequency axis (Hz)
+% freq: baseband frequency axis (Hz). This should be a column vector since
+% it is a fast-time axis. This should be ifftshift so it aligns with the
+% fft output sample ordering.
 % HERE
 
 % range: create the range axis corresponding to the time axis (m)
@@ -166,15 +171,19 @@ target.sigma_RCS = [1];
 % dkx: wavenumber domain spacing (rad/m)
 % HERE
 
-% kx: wavenumber (spatial angular frequency) axis (rad/m)
+% kx: wavenumber (spatial angular frequency) axis (rad/m). This should be a
+% row vector since it is a slow-time axis. This should be ifftshift so
+% it aligns with the fft output sample ordering.
 % HERE
 
 % df_eta: doppler frequency domain spacing (Hz)
 % HERE
 
-% f_eta: doppler frequency axis, eta is slow time variable (Hz)
+% f_eta: doppler frequency axis, eta is slow time variable (Hz). This
+% should be a row vector since it is a slow-time axis. This should be
+% ifftshift so it aligns with the fft output sample ordering.
 % HERE
-%% 3.8 Define linear FM chirp
+%% 9. Define linear FM chirp
 
 % Kr: fast time chirp rate (Hz/sec) from sys.B and sys.Tpd
 % HERE
@@ -184,7 +193,7 @@ target.sigma_RCS = [1];
 % use sys.fasttime_fh(t).
 ref = sys.fasttime_fh((time-t_ref)/sys.Tpd) .* exp(1i*pi*Kr*(time-t_ref).^2);
 
-%% 3.9 Simulator loop
+%% 10. Simulator loop
 
 % data: Preallocate raw data matrix
 data = zeros(Nt,Nx);
@@ -220,7 +229,7 @@ for t_idx = 1:size(target.pos,2)
   % HERE
 
 end
-%% 3.10 Save simulation data
+%% 11. Save simulation data
 
 raw = [];
 raw.x = x;
@@ -232,7 +241,7 @@ raw.ref = ref;
 
 fn_raw = fullfile(sys.temp_dir,'raw_rds.mat');
 save(fn_raw,'raw','sys','img','target','-v7.3','-nocompression');
-%% 3.11 Time vs space image plot in figure 1
+%% 12. Time vs space image plot in figure 1
 
 h_fig = figure(1); set(h_fig,'WindowStyle','docked'); clf;
 subplot(1,2,1);
@@ -251,7 +260,7 @@ set(get(hcolor,'YLabel'),'String','Phase (rad)');
 title('Raw data')
 xlabel('Along-track position (m)');
 ylabel('Time ({\mu}s)');
-%% 3.12 Range vs slow-time image plot in figure 2
+%% 13. Range vs slow-time image plot in figure 2
 
 h_fig = figure(2); set(h_fig,'WindowStyle','docked'); clf;
 subplot(1,2,1);

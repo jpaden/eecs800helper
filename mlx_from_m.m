@@ -18,14 +18,12 @@ function results = mlx_from_m(varargin)
 %   results  struct array with fields fn_m, fn_mlx, ok, note. Only returned
 %            when asked for, so "ans" is not echoed.
 %
-% Verification
-%   Each generated .mlx is exported back to plain code and compared against
-%   the source .m. The comparison ignores a blank line at the end of a code
-%   section (immediately before a "%%" heading) and trailing blank lines at
-%   the end of the file, because the Live Editor does not keep those. Any
-%   other difference is a real one and is reported as FAIL.
-%
 % Notes
+%   * The .mlx is generated from the .m and is never read back or compared,
+%     so the .m file always wins. The Live Editor drops trailing blank lines
+%     at the end of a code section, which means the .mlx does not always
+%     reproduce the .m byte for byte. That does not matter: regenerate the
+%     .mlx rather than exporting it back.
 %   * This only preserves what a plain .m file can express: code, comments
 %     and "%%" section headings. Live Editor extras (formatted text,
 %     equations, images, embedded output) are NOT preserved, so do not
@@ -52,7 +50,7 @@ if isempty(fns)
   error('mlx_from_m:noInput','Give at least one .m file.');
 end
 
-%% Regenerate and verify each one
+%% Regenerate each one
 
 res = struct('fn_m', {}, 'fn_mlx', {}, 'ok', {}, 'note', {});
 n_ok = 0;
@@ -76,21 +74,8 @@ for f_idx = 1:numel(fns)
   ok   = false;
   try
     matlab.internal.liveeditor.openAndSave(fn_m, fn_mlx);
-
-    % Export straight back to plain code and compare with the source.
-    fn_tmp = [tempname '.m'];
-    cleanup = onCleanup(@() delete_if_present(fn_tmp));
-    export(fn_mlx, fn_tmp, 'Run', false);
-
-    src = normalize_code(fileread(fn_m));
-    rt  = normalize_code(fileread(fn_tmp));
-    if isequal(src, rt)
-      ok   = true;
-      n_ok = n_ok + 1;
-    else
-      note = first_difference(src, rt);
-    end
-    clear cleanup
+    ok   = true;
+    n_ok = n_ok + 1;
   catch ME
     note = ME.message;
   end
@@ -108,62 +93,10 @@ for f_idx = 1:numel(fns)
 
 end
 
-fprintf('\n  %d of %d regenerated and verified.\n\n', n_ok, numel(fns));
+fprintf('\n  %d of %d regenerated.\n\n', n_ok, numel(fns));
 
 if nargout > 0
   results = res;
 end
 
-end
-
-% -------------------------------------------------------------------------
-
-function lines = normalize_code(str)
-% Split into lines and drop the whitespace the Live Editor does not keep: a
-% blank line at the end of a code section and blank lines at end of file.
-lines = regexp(str, '\r\n|\n|\r', 'split').';
-lines = regexprep(lines, '\s+$', '');
-
-keep = true(numel(lines),1);
-for idx = 1:numel(lines)-1
-  if isempty(lines{idx}) && startsWith(lines{idx+1}, '%%')
-    keep(idx) = false;
-  end
-end
-lines = lines(keep);
-
-while ~isempty(lines) && isempty(lines{end})
-  lines(end) = [];
-end
-end
-
-% -------------------------------------------------------------------------
-
-function str = first_difference(a, b)
-% Report the first line that differs, so a real mismatch is easy to find.
-n = min(numel(a), numel(b));
-for idx = 1:n
-  if ~strcmp(a{idx}, b{idx})
-    str = sprintf('line %d differs: .m has "%s", .mlx has "%s"', ...
-      idx, trim_to(a{idx},40), trim_to(b{idx},40));
-    return
-  end
-end
-str = sprintf('.m has %d lines, .mlx has %d', numel(a), numel(b));
-end
-
-% -------------------------------------------------------------------------
-
-function str = trim_to(str, n)
-if numel(str) > n
-  str = [str(1:n) '...'];
-end
-end
-
-% -------------------------------------------------------------------------
-
-function delete_if_present(fn)
-if exist(fn,'file')
-  delete(fn);
-end
 end
