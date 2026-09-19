@@ -38,12 +38,11 @@ function results = hw1_problem3_check(varargin)
 %     this function reveals nothing about how an answer is derived.
 %
 % Notes
-%   * t0 and t1 are checked after the sample-alignment adjustment in
-%     section 6,
-%     since that is the value that survives to the end of the script.
-%   * R, td and squint_ang are the loop variables from section 10 and therefore
-%     hold the values for the LAST target in target.pos. The reference
-%     assumes the single target defined by the template.
+%   * t0 and t1 are checked after the sample-alignment adjustment in section
+%     6, since that is the value that survives to the end of the script.
+%   * R, td and squint_ang are the loop variables from section 10 and
+%     therefore hold the values for the LAST target in target.pos. The
+%     reference assumes the single target defined by the template.
 %   * The reference was generated with the target and system/image
 %     parameters as distributed (sys_rds.yaml, img_rds.yaml, one target at
 %     the scene center). Changing any of those invalidates the comparison.
@@ -89,7 +88,7 @@ ref = { ...
   '6',   'Nt',        's', [1 1],        3270,                  0, 0, '', 0;
   '7',   'dx',        's', [1 1],        0.25,                  0, 0, '', [];
   '7',   'x',         'a', [1 1449],     3980.63044629868,      -181,                  181,                   '', [];
-  '7',   'Nx',        's', [1 1],        1449,                  0, 0, '', [];
+  '7',   'Nx',        's', [1 1],        1449,                  0, 0, '', 0;
   '7',   'y',         'a', [1 1449],     19032.8663106743,      500,                   500,                   '', [];
   '7',   'z',         'a', [1 1449],     19032.8663106743,      500,                   500,                   '', [];
   '8',   'df',        's', [1 1],        91743.119266055,       0, 0, '', 0.01;
@@ -150,8 +149,8 @@ end
 
 % =========================================================================
 % Shared comparison engine
-% This block is byte-identical in hw1_problem2_check, hw1_problem3_check and
-% hw1_problem4_check. Keep it that way: fix a bug in one, copy it to all.
+% This block is byte-identical in every hwN_problemM_check function. Keep it
+% that way: fix a bug in one, copy it to all.
 % =========================================================================
 
 function results = run_check(ref, opt, title_str, found, used, vals)

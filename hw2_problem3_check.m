@@ -1,24 +1,24 @@
-function results = hw1_problem2_check(varargin)
-% results = hw1_problem2_check(...)
+function results = hw2_problem3_check(varargin)
+% results = hw2_problem3_check(...)
 %
 % Checks the variables that the student was asked to supply in
-% hw1_problem2.m (every "% HERE" entry in hw1_problem2_template.m).
+% hw2_problem3.m (every "% HERE" entry in hw2_problem3_template.m).
 %
 % Usage
-%   1) Run the student's hw1_problem2.m so that its variables are left in
+%   1) Run the student's hw2_problem3.m so that its variables are left in
 %      the workspace.
 %   2) Call this function from that same workspace:
-%        >> hw1_problem2
-%        >> hw1_problem2_check
+%        >> hw2_problem3
+%        >> hw2_problem3_check
 %
 % Options (name/value pairs)
 %   'tol_pct'       percent error allowed on values and norms (default 1.0)
-%   'tol_dB'        absolute error allowed on dB-valued answers (default 0.1)
+%   'tol_dB'        absolute error allowed on dB-valued answers (default
+%                   0.1). No answer in this problem is graded in dB.
 %   'tol_endpoint_pct'  percent error allowed on the first/last element of
 %                   an array (default 10.0). Looser than 'tol_pct' on
 %                   purpose: the endpoint test exists to catch a reversed or
-%                   mis-started axis, not to re-grade the norm. Problem 2
-%                   has no array answers, so it goes unused here.
+%                   mis-started axis, not to re-grade the norm.
 %   'show_expected' true -> also print reference values      (default false)
 %                   Leave false when handing this to students so that they
 %                   see how far off they are without being handed answers.
@@ -29,24 +29,24 @@ function results = hw1_problem2_check(varargin)
 %            section, name, kind, value, pct_err, status, note
 %
 % How answers are graded
-%   * Linear scalars are compared to a stored value and reported as percent
-%     error.
-%   * Answers in dB are graded on absolute dB error instead, since a percent
-%     error on a logarithmic quantity means very little. The percent error is
-%     still reported.
+%   * Scalars are compared to a stored value and reported as percent error.
+%   * Vectors and matrices are compared on (a) their size, which must match
+%     exactly, and (b) their Frobenius norm, reported as percent error.
+%     The first and last elements are also compared, which catches a
+%     reversed or mis-started axis that happens to carry the right norm.
 %   * No formulas are used or shown. Every reference is a plain constant, so
 %     this function reveals nothing about how an answer is derived.
 %
 % Notes
-%   * Section 5 asks for the ORIGINAL sys.vel to be displayed and then
-%     overwritten. Only the final value survives to the end of the script, so
-%     that is what is checked.
-%   * R and Gpc are requested in more than one section but hold the same
-%     value in each, so each is checked once.
-%   * The reference was generated with sys_capellav1.yaml as distributed.
-%     Changing it invalidates the comparison.
+%   * img_pos, R, td, kx_expected, td_bins, H_kx, h_sinc and sinc_out are
+%     loop variables from section 6 and therefore hold the values for the
+%     LAST image pixel. h_sinc and sinc_out also depend on x_mask, so their
+%     sizes vary with the along-track window.
+%   * time_img_Mt, range_img_Mt and x_img_Mx are from the section 10 loop
+%     over targets and hold the values for the last target.
+%   * Run hw2_problem1 first: this problem reads the raw data it saves.
 %
-% See also HW1_PROBLEM3_CHECK, HW1_PROBLEM4_CHECK
+% See also HW2_PROBLEM1_CHECK, HW2_PROBLEM2_CHECK
 
 %% Options
 
@@ -54,11 +54,11 @@ opt = struct('show_expected', false, 'tol_pct', 1.0, 'tol_endpoint_pct', 10.0, .
   'tol_dB', 0.1, 'workspace', 'caller');
 valid_opts = fieldnames(opt);
 if mod(numel(varargin),2) ~= 0
-  error('hw1_problem2_check:badInput','Options must be name/value pairs.');
+  error('hw2_problem3_check:badInput','Options must be name/value pairs.');
 end
 for arg_idx = 1:2:numel(varargin)
   if ~ismember(varargin{arg_idx}, valid_opts)
-    error('hw1_problem2_check:badOption','Unknown option "%s". Valid options: %s.', ...
+    error('hw2_problem3_check:badOption','Unknown option "%s". Valid options: %s.', ...
       varargin{arg_idx}, strjoin(valid_opts.',', '));
   end
   opt.(varargin{arg_idx}) = varargin{arg_idx+1};
@@ -69,34 +69,50 @@ end
 %   tol_pct (optional 9th column) overrides the 'tol_pct' option for that row;
 %   leave it [] to use the option. Use it where a common mistake lands
 %   inside the default tolerance.
-%   kind 's' -> scalar graded on percent error
-%   kind 'd' -> scalar graded on absolute dB error
-%   kind 'a' -> vector/matrix graded on size and Frobenius norm (none here)
+%   kind 's' -> scalar,        value/norm is the signed value
+%   kind 'a' -> vector/matrix, value/norm is the Frobenius norm
 
 ref = { ...
-  '2',   'R',              's', [1 1], 742462.120245875,     0, 0, ''; ...
-  '2',   'sigma_RCS',      's', [1 1], 1,                    0, 0, ''; ...
-  '2',   'lambda_c',       's', [1 1], 0.0310665759585850,   0, 0, ''; ...
-  '2',   'Pr_point',       's', [1 1], 3.82306104352389e-14, 0, 0, ''; ...
-  '2',   'Pr_point_dB',    'd', [1 1], -134.175887674652,    0, 0, ''; ...
-  '3',   'sigma_0',        's', [1 1], 0.1,                  0, 0, ''; ...
-  '3',   'sigma_r',        's', [1 1], 0.299792458000345,    0, 0, ''; ...
-  '3',   'sigma_rg',       's', [1 1], 0.423970560001255,    0, 0, ''; ...
-  '3',   'A',              's', [1 1], 2142.65365781629,     0, 0, ''; ...
-  '3',   'Gpc',            's', [1 1], 10000,                0, 0, ''; ...
-  '3',   'Pr',             's', [1 1], 8.19149572896142e-12, 0, 0, ''; ...
-  '3',   'Pr_dB',          'd', [1 1], -110.866367908495,    0, 0, ''; ...
-  '4',   'Pn',             's', [1 1], 4.18265230688946e-12, 0, 0, ''; ...
-  '4',   'Pn_dB',          'd', [1 1], -113.785482357003,    0, 0, ''; ...
-  '5',   'sys.vel',        's', [1 1], 7605.93909173527,     0, 0, ''; ...
-  '6',   'sigma_NESZ',     's', [1 1], 0.0340368981245839,   0, 0, ''; ...
-  '6',   'sigma_NESZ_dB',  'd', [1 1], -14.6805002522548,    0, 0, ''; ...
-  '7',   'dx',             's', [1 1], 1.52118781834705,     0, 0, ''; ...
-  '8',   'k',              's', [1 1], 404.498089236209,     0, 0, ''; ...
-  '8',   'kx_min',         's', [1 1], -1.37666291999443,    0, 0, ''; ...
-  '8',   'kx_max',         's', [1 1], 1.37666291999443,     0, 0, ''; ...
-  '9',   'B_kx',           's', [1 1], 2.75332583998887,     0, 0, ''; ...
-  '9',   'dx_max',         's', [1 1], 2.28203477260977,     0, 0, ''; ...
+  '3', 'Kr',           's', [1 1],        6000000000000,         0, 0, '', [];
+  '3', 'Nx_img',       's', [1 1],        100,                   0, 0, '', 0;
+  '3', 'Nr_img',       's', [1 1],        100,                   0, 0, '', 0;
+  '3', 'x_img',        'a', [1 100],      360.880000831301,      -62.5,                 61.25,                 '', [];
+  '3', 'r_img',        'a', [100 1],      360.880000831301,      -62.5,                 61.25,                 '', [];
+  '3', 'y_img',        'a', [100 1],      231.969193118028,      40.1742256054087,      -39.3707410933005,     '', [];
+  '3', 'z_img',        'a', [100 1],      276.450119269591,      47.8777776949361,      -46.9202221410374,     '', [];
+  '3', 'time_img',     'a', [100 1],      4.35685537851589e-05,  3.93741489430971e-06,  4.76298602992419e-06,  '', [];
+  '4', 'freq',         'a', [819 1],      619601224.704791,      0,                     -91575.0915750915,     '', [];
+  '4', 'ref_fft',      'a', [819 1],      758.853987931802, ...
+                                          21.6511578278299 + 21.6511771555503i, ...
+                                          -22.2227421218066 - 21.0619756290318i, '', [];
+  '4', 'r_ref',        's', [1 1],        652.703644666139,      0, 0, '', [];
+  '4', 't_ref',        's', [1 1],        4.35437001330692e-06,  0, 0, '', [];
+  '4', 'data_pc',      'a', [819 1037],   25988.8801072753, ...
+                                          -0.00366577439301919 - 0.0089134297724032i, ...
+                                          -0.00134399819906557 - 0.00352673821430907i, '', [];
+  '6', 'lambda_fc',    's', [1 1],        1.53739722051459,      0, 0, '', [];
+  '6', 'k_fc',         's', [1 1],        8.17379558560215,      0, 0, '', [];
+  '6', 'B_kx',         's', [1 1],        2.51327412287183,      0, 0, '', [];
+  '6', 'img_pos',      'a', [3 1],        86.6205806953521,      61.25,                 -46.9202221410374,     '', [];
+  '6', 'R',            'a', [1 1037],     23298.1910052234,      751.296754735776,      722.594962854831,      '', [];
+  '6', 'td',           'a', [1 1037],     0.000155428800048042,  5.01211244436917e-06,  4.82063469958273e-06,  '', [];
+  '6', 'kx_expected',  'a', [1 1037],     42.3465890100539,      2.58793733643105,      -1.26536278287534,     '', [];
+  '6', 'td_bins',      'a', [1 1037],     14265.3423690708,      456.908433327687,      442.547602468704,      '', [];
+  '6', 'H_kx',         'a', [1 1037],     25.7681974534503,      0,                     0,                     '', [];
+  '6', 'h_sinc',       'a', [16 664],     24.6976568739897,      0,                     0,                     '', [];
+  '6', 'sinc_out',     'a', [1 664],      47.3975611071292, ...
+                                          -0.608240247138456 + 0.0926944180757854i, ...
+                                          -4.6861827768192 - 0.6273823391852i, '', [];
+  '6', 'data_img',     'a', [100 100],    877343.547797463, ...
+                                          9.07823667067301 - 1.96749295842346i, ...
+                                          4.0721691837542 - 13.9756882522058i, '', [];
+  '7', 'df',           's', [1 1],        1199169.83200147,      0, 0, '', [];
+  '7', 'freq_img',     'a', [100 1],      346205127.97565,       0,                     -1199169.83200147,     '', [];
+  '7', 'dkx',          's', [1 1],        0.0502654824574367,    0, 0, '', [];
+  '7', 'kx_img',       'a', [1 100],      14.5118458808204,      0,                     -0.0502654824574367,   '', [];
+  '10', 'time_img_Mt',  'a', [1000 1],     0.000137894371526563,  3.93741489430971e-06,  4.77049122206608e-06,  '', [];
+  '10', 'range_img_Mt', 'a', [1000 1],     1141.0898025571,       -62.5,                 62.3749999999906,      '', [];
+  '10', 'x_img_Mx',     'a', [1 1000],     1141.08980255719,      -62.5,                 62.375,                '', [];
   };
 
 %% Snapshot the variables of interest
@@ -132,7 +148,7 @@ for idx = 1:n_ref
   end
 end
 
-res = run_check(ref, opt, 'hw1 problem 2', found, used, vals);
+res = run_check(ref, opt, 'hw2 problem 3', found, used, vals);
 if nargout > 0
   results = res;   % only return when asked, so "ans" is not echoed
 end

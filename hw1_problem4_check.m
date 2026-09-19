@@ -156,8 +156,8 @@ end
 
 % =========================================================================
 % Shared comparison engine
-% This block is byte-identical in hw1_problem2_check, hw1_problem3_check and
-% hw1_problem4_check. Keep it that way: fix a bug in one, copy it to all.
+% This block is byte-identical in every hwN_problemM_check function. Keep it
+% that way: fix a bug in one, copy it to all.
 % =========================================================================
 
 function results = run_check(ref, opt, title_str, found, used, vals)
