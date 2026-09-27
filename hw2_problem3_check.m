@@ -19,6 +19,8 @@ function results = hw2_problem3_check(varargin)
 %                   an array (default 10.0). Looser than 'tol_pct' on
 %                   purpose: the endpoint test exists to catch a reversed or
 %                   mis-started axis, not to re-grade the norm.
+%   'tol_phase_deg' absolute error allowed, in degrees, on the phase of an
+%                   array's coherent sum (default 0.5). See below.
 %   'show_expected' true -> also print reference values      (default false)
 %                   Leave false when handing this to students so that they
 %                   see how far off they are without being handed answers.
@@ -34,6 +36,13 @@ function results = hw2_problem3_check(varargin)
 %     exactly, and (b) their Frobenius norm, reported as percent error.
 %     The first and last elements are also compared, which catches a
 %     reversed or mis-started axis that happens to carry the right norm.
+%   * Vectors and matrices also get two phase checks, because a conjugated
+%     array or a sign error in an exponent leaves the norm untouched and, for
+%     arrays whose endpoints are zero, the endpoints too: (c) the phase of
+%     the coherent sum, sum(v(:)), graded on absolute wrapped error in
+%     degrees ('tol_phase_deg'), skipped for real arrays and where the sum is
+%     numerically zero (symmetric axes, ref_fft); and (d) the Frobenius norm
+%     of angle(v), graded as percent error ('tol_pct').
 %   * No formulas are used or shown. Every reference is a plain constant, so
 %     this function reveals nothing about how an answer is derived.
 %
@@ -51,7 +60,7 @@ function results = hw2_problem3_check(varargin)
 %% Options
 
 opt = struct('show_expected', false, 'tol_pct', 1.0, 'tol_endpoint_pct', 10.0, ...
-  'tol_dB', 0.1, 'workspace', 'caller');
+  'tol_dB', 0.1, 'tol_phase_deg', 0.5, 'workspace', 'caller');
 valid_opts = fieldnames(opt);
 if mod(numel(varargin),2) ~= 0
   error('hw2_problem3_check:badInput','Options must be name/value pairs.');
@@ -65,54 +74,59 @@ for arg_idx = 1:2:numel(varargin)
 end
 
 %% Reference answers
-% Columns: {section, name, kind, size, value/norm, first element, last element, alias[, tol_pct]}
+% Columns: {section, name, kind, size, value/norm, first element, last element, alias, tol_pct, phase, angle_norm}
 %   tol_pct (optional 9th column) overrides the 'tol_pct' option for that row;
 %   leave it [] to use the option. Use it where a common mistake lands
 %   inside the default tolerance.
+%   phase (10th column) is angle(sum(v(:))) in radians for a complex array,
+%   NaN for a real array or where the sum is ~0 (that test is then skipped),
+%   and [] for a scalar. angle_norm (11th column) is norm(angle(v(:))) for
+%   an array and [] for a scalar. Both are plain constants like every other
+%   column.
 %   kind 's' -> scalar,        value/norm is the signed value
 %   kind 'a' -> vector/matrix, value/norm is the Frobenius norm
 
 ref = { ...
-  '3', 'Kr',           's', [1 1],        6000000000000,         0, 0, '', [];
-  '3', 'Nx_img',       's', [1 1],        100,                   0, 0, '', 0;
-  '3', 'Nr_img',       's', [1 1],        100,                   0, 0, '', 0;
-  '3', 'x_img',        'a', [1 100],      360.880000831301,      -62.5,                 61.25,                 '', [];
-  '3', 'r_img',        'a', [100 1],      360.880000831301,      -62.5,                 61.25,                 '', [];
-  '3', 'y_img',        'a', [100 1],      231.969193118028,      40.1742256054087,      -39.3707410933005,     '', [];
-  '3', 'z_img',        'a', [100 1],      276.450119269591,      47.8777776949361,      -46.9202221410374,     '', [];
-  '3', 'time_img',     'a', [100 1],      4.35685537851589e-05,  3.93741489430971e-06,  4.76298602992419e-06,  '', [];
-  '4', 'freq',         'a', [819 1],      619601224.704791,      0,                     -91575.0915750915,     '', [];
-  '4', 'ref_fft',      'a', [819 1],      758.853987931802, ...
-                                          21.6511578278299 + 21.6511771555503i, ...
-                                          -22.2227421218066 - 21.0619756290318i, '', [];
-  '4', 'r_ref',        's', [1 1],        652.703644666139,      0, 0, '', [];
-  '4', 't_ref',        's', [1 1],        4.35437001330692e-06,  0, 0, '', [];
-  '4', 'data_pc',      'a', [819 1037],   25988.8801072753, ...
-                                          -0.00366577439301919 - 0.0089134297724032i, ...
-                                          -0.00134399819906557 - 0.00352673821430907i, '', [];
-  '6', 'lambda_fc',    's', [1 1],        1.53739722051459,      0, 0, '', [];
-  '6', 'k_fc',         's', [1 1],        8.17379558560215,      0, 0, '', [];
-  '6', 'B_kx',         's', [1 1],        2.51327412287183,      0, 0, '', [];
-  '6', 'img_pos',      'a', [3 1],        86.6205806953521,      61.25,                 -46.9202221410374,     '', [];
-  '6', 'R',            'a', [1 1037],     23298.1910052234,      751.296754735776,      722.594962854831,      '', [];
-  '6', 'td',           'a', [1 1037],     0.000155428800048042,  5.01211244436917e-06,  4.82063469958273e-06,  '', [];
-  '6', 'kx_expected',  'a', [1 1037],     42.3465890100539,      2.58793733643105,      -1.26536278287534,     '', [];
-  '6', 'td_bins',      'a', [1 1037],     14265.3423690708,      456.908433327687,      442.547602468704,      '', [];
-  '6', 'H_kx',         'a', [1 1037],     25.7681974534503,      0,                     0,                     '', [];
-  '6', 'h_sinc',       'a', [16 664],     24.6976568739897,      0,                     0,                     '', [];
-  '6', 'sinc_out',     'a', [1 664],      47.3975611071292, ...
-                                          -0.608240247138456 + 0.0926944180757854i, ...
-                                          -4.6861827768192 - 0.6273823391852i, '', [];
-  '6', 'data_img',     'a', [100 100],    877343.547797463, ...
-                                          9.07823667067301 - 1.96749295842346i, ...
-                                          4.0721691837542 - 13.9756882522058i, '', [];
-  '7', 'df',           's', [1 1],        1199169.83200147,      0, 0, '', [];
-  '7', 'freq_img',     'a', [100 1],      346205127.97565,       0,                     -1199169.83200147,     '', [];
-  '7', 'dkx',          's', [1 1],        0.0502654824574367,    0, 0, '', [];
-  '7', 'kx_img',       'a', [1 100],      14.5118458808204,      0,                     -0.0502654824574367,   '', [];
-  '10', 'time_img_Mt',  'a', [1000 1],     0.000137894371526563,  3.93741489430971e-06,  4.77049122206608e-06,  '', [];
-  '10', 'range_img_Mt', 'a', [1000 1],     1141.0898025571,       -62.5,                 62.3749999999906,      '', [];
-  '10', 'x_img_Mx',     'a', [1 1000],     1141.08980255719,      -62.5,                 62.375,                '', [];
+  '3',  'Kr',                  's', [1 1],        6000000000000,           0, 0, '',            [], [], [];
+  '3',  'Nx_img',              's', [1 1],        100,                     0, 0, '',            0, [], [];
+  '3',  'Nr_img',              's', [1 1],        100,                     0, 0, '',            0, [], [];
+  '3',  'x_img',               'a', [1 100],       360.880000831301,        -62.5,                   61.25,                   '',            [], NaN, 22.2144146907918;
+  '3',  'r_img',               'a', [100 1],       360.880000831301,        -62.5,                   61.25,                   '',            [], NaN, 22.2144146907918;
+  '3',  'y_img',               'a', [100 1],       231.969193118028,        40.1742256054087,        -39.3707410933005,       '',            [], NaN, 21.9911485751286;
+  '3',  'z_img',               'a', [100 1],       276.450119269591,        47.8777776949361,        -46.9202221410374,       '',            [], NaN, 21.9911485751286;
+  '3',  'time_img',            'a', [100 1],       4.35685537851589e-05,    3.93741489430971e-06,    4.76298602992419e-06,    '',            [], NaN, 0;
+  '4',  'freq',                'a', [819 1],       619601224.704791,        0,                       -91575.0915750915,       '',            [], NaN, 63.5347794522461;
+  '4',  'ref_fft',             'a', [819 1],       758.853987931802, ...
+                                                21.6511578278299 + 21.6511771555503i, ...
+                                                -22.2227421218066 - 21.0619756290318i, '', [], NaN, 52.6076366140774;
+  '4',  'r_ref',               's', [1 1],        652.703644666139,        0, 0, '',            [], [], [];
+  '4',  't_ref',               's', [1 1],        4.35437001330692e-06,    0, 0, '',            [], [], [];
+  '4',  'data_pc',             'a', [819 1037],    25988.8801072753, ...
+                                                -0.00366577439301919 - 0.0089134297724032i, ...
+                                                -0.00134399819906557 - 0.00352673821430907i, '', [], -1.40015227834439, 1671.21618201917;
+  '6',  'lambda_fc',           's', [1 1],        1.53739722051459,        0, 0, '',            [], [], [];
+  '6',  'k_fc',                's', [1 1],        8.17379558560215,        0, 0, '',            [], [], [];
+  '6',  'B_kx',                's', [1 1],        2.51327412287183,        0, 0, '',            [], [], [];
+  '6',  'img_pos',             'a', [3 1],         86.6205806953521,        61.25,                   -46.9202221410374,       '',            [], NaN, 4.44288293815837;
+  '6',  'R',                   'a', [1 1037],      23298.1910052234,        751.296754735776,        722.594962854831,        '',            [], NaN, 0;
+  '6',  'td',                  'a', [1 1037],      0.000155428800048042,    5.01211244436917e-06,    4.82063469958273e-06,    '',            [], NaN, 0;
+  '6',  'kx_expected',         'a', [1 1037],      41.9514381774268,        2.54491584762828,        -1.26031470599313,       '',            [], NaN, 57.5005867306146;
+  '6',  'td_bins',             'a', [1 1037],      14265.3423690708,        456.908433327687,        442.547602468704,        '',            [], NaN, 0;
+  '6',  'H_kx',                'a', [1 1037],      25.8263431402899,        0,                       0,                       '',            [], NaN, 0;
+  '6',  'h_sinc',              'a', [16 667],      24.7493524348616,        -0,                      -2.27267738072704e-06,   '',            [], NaN, 181.425275740821;
+  '6',  'sinc_out',            'a', [1 667],       47.8616827727601, ...
+                                                -0.563626239998553 + 0.210394738516383i, ...
+                                                -1.44663344261195 + 4.43474838836654i, '', [], 2.30966624606089, 47.5327331218026;
+  '6',  'data_img',            'a', [100 100],     879122.730792389, ...
+                                                9.36556631008177 + 0.506990267446985i, ...
+                                                -5.72018934391934 - 14.1062271340269i, '', [], -0.633045164652568, 181.626653478984;
+  '7',  'df',                  's', [1 1],        1199169.83200147,        0, 0, '',            [], [], [];
+  '7',  'freq_img',            'a', [100 1],       346205127.97565,         0,                       -1199169.83200147,       '',            [], NaN, 22.2144146907918;
+  '7',  'dkx',                 's', [1 1],        0.0502654824574367,      0, 0, '',            [], [], [];
+  '7',  'kx_img',              'a', [1 100],       14.5118458808204,        0,                       -0.0502654824574367,     '',            [], NaN, 22.2144146907918;
+  '10', 'time_img_Mt',         'a', [1000 1],      0.000137894371526563,    3.93741489430971e-06,    4.77049122206608e-06,    '',            [], NaN, 0;
+  '10', 'range_img_Mt',        'a', [1000 1],      1141.0898025571,         -62.5,                   62.3749999999906,        '',            [], NaN, 70.3183603687242;
+  '10', 'x_img_Mx',            'a', [1 1000],      1141.08980255719,        -62.5,                   62.375,                  '',            [], NaN, 70.2481473104073;
   };
 
 %% Snapshot the variables of interest
@@ -164,7 +178,7 @@ end
 function results = run_check(ref, opt, title_str, found, used, vals)
 
 results = struct('section', {}, 'name', {}, 'kind', {}, 'value', {}, ...
-  'pct_err', {}, 'status', {}, 'note', {});
+  'pct_err', {}, 'phase_err_deg', {}, 'angle_norm_pct', {}, 'status', {}, 'note', {});
 n_pass = 0;
 n_fail = 0;
 n_absent = 0;
@@ -175,6 +189,9 @@ fprintf(' EECS 800 %s -- answer check\n', title_str);
 fprintf(' Tolerance: %.3g%% on values and norms', opt.tol_pct);
 if any(strcmp(ref(:,3),'d'))
   fprintf(', %.3g dB on dB values', opt.tol_dB);
+end
+if size(ref,2) >= 10 && any(cellfun(@(c) ~isempty(c) && ~isnan(c), ref(:,10)))
+  fprintf(', %.3g deg on the phase of an array''s sum', opt.tol_phase_deg);
 end
 fprintf('.\n');
 if size(ref,2) >= 9
@@ -214,6 +231,8 @@ for idx = 1:size(ref,1)
 
   note     = '';
   pct      = NaN;
+  ph_err   = NaN;
+  an_pct   = NaN;
   shown    = NaN;
   size_str = '--';
   val      = [];
@@ -318,6 +337,50 @@ for idx = 1:size(ref,1)
           end
         end
 
+        % phase of the coherent sum catches a conjugated array or a sign
+        % error in an exponent, which leave the norm (and zero endpoints)
+        % untouched. Skipped (NaN) where the reference sum is numerically
+        % zero, e.g. a symmetric axis, or for a real-valued array.
+        if size(ref,2) >= 10 && ~isempty(ref{idx,10}) && ~isnan(ref{idx,10})
+          e_ph  = ref{idx,10};
+          v_sum = sum(val(:));
+          if abs(v_sum) <= 1e-9*sqrt(numel(val))*fro
+            ok   = false;
+            note = add_note(note, 'coherent sum is ~0 so its phase is undefined');
+          else
+            ph_err = wrap_deg(180/pi*(angle(v_sum) - e_ph));
+            if abs(ph_err) > opt.tol_phase_deg
+              ok   = false;
+              note = add_note(note, sprintf('phase of sum off by %.4g deg', ph_err));
+              if abs(wrap_deg(180/pi*(-angle(v_sum) - e_ph))) <= opt.tol_phase_deg
+                note = add_note(note, 'looks conjugated');
+              end
+            end
+          end
+        end
+
+        % norm of the element phases: a second phase statistic that does
+        % not depend on the sum being well conditioned. A reference of zero
+        % means every element is real and non-negative.
+        if size(ref,2) >= 11 && ~isempty(ref{idx,11})
+          e_an = ref{idx,11};
+          an   = norm(angle(val(:)));
+          if abs(e_an) > 1e-9
+            an_pct = 100*abs(an - e_an)/abs(e_an);
+            an_ok  = an_pct <= tol;
+          else
+            an_ok  = an <= 1e-6;
+          end
+          if ~an_ok
+            ok = false;
+            if abs(e_an) > 1e-9
+              note = add_note(note, sprintf('angle norm off by %.4g%%', an_pct));
+            else
+              note = add_note(note, 'angle norm should be zero (all elements real and non-negative)');
+            end
+          end
+        end
+
         if ok
           status = 'PASS';
           n_pass = n_pass + 1;
@@ -336,6 +399,8 @@ for idx = 1:size(ref,1)
   results(end).kind      = kind;
   results(end).value     = shown;
   results(end).pct_err   = pct;
+  results(end).phase_err_deg  = ph_err;
+  results(end).angle_norm_pct = an_pct;
   results(end).status    = status;
   results(end).note      = note;
 
@@ -379,6 +444,13 @@ if isnan(pct)
 else
   str = sprintf('%s element off by %.4g%%', which_end, pct);
 end
+end
+
+% -------------------------------------------------------------------------
+
+function d = wrap_deg(d)
+% Wrap a difference in degrees to (-180, 180].
+d = mod(d + 180, 360) - 180;
 end
 
 % -------------------------------------------------------------------------

@@ -41,11 +41,11 @@ end
 
 physical_constants; % Loads c, Boltzmann's constant, e0, u0, etc.
 
-% pc_window_fh: Fast time time-domain window function handle
-pc_window_fh = @(time_norm) tukeywin_cont(time_norm,0);
+% pc_window_fh: Pulse compression frequency-domain window function handle
+pc_window_fh = @(freq_norm) tukeywin_cont(freq_norm,0);
 
-% sar_window_fh: Slow time azimuth-angle-domain window function handle
-sar_window_fh = @(time_norm) tukeywin_cont(time_norm,0);
+% sar_window_fh: SAR processing wavenumber-domain window function handle
+sar_window_fh = @(kx_norm) tukeywin_cont(kx_norm,0);
 
 %% 2. Load raw data parameters
 
@@ -53,7 +53,9 @@ fn_sys = fullfile(my_temp_dir,'raw_rds_hw2.mat');
 load(fn_sys); % Loads sys, img, raw, and target
 sys.path_dir = my_path_dir;
 sys.temp_dir = my_temp_dir;
+% img.x: Redefine the image x-extent to be 1/4 of the original value to make the image smaller and easier to process
 img.x = img.x/4;
+% img.r: Redefine the image slant-range-extent to be 1/4 of the original value to make the image smaller and easier to process
 img.r = img.r/4;
 
 %% 3. SAR Processor loop
@@ -83,7 +85,7 @@ dx = raw.x(2)-raw.x(1);
 
 % x_img: Create the output image x-axis. This axis is parallel to the
 % along-track vector. The origin is at the scene center. Use (1) the IDFT
-% definition after ifftshift, (2) Nx_img, and (3) img.dx to determine the
+% definition after fftshift, (2) Nx_img, and (3) img.dx to determine the
 % points.
 % HERE
 
@@ -92,7 +94,7 @@ dx = raw.x(2)-raw.x(1);
 % cylinder is parallel and centered on the along-track vector. Normally rho
 % must be positive, but shift this axis so that the zero lies on the scene
 % center. To determine the start/stop of this axis, use (1) the IDFT
-% definition after ifftshift, (2) Nr_img, and (3) img.dr to determine the
+% definition after fftshift, (2) Nr_img, and (3) img.dr to determine the
 % points.
 % HERE
 
@@ -114,7 +116,7 @@ dx = raw.x(2)-raw.x(1);
 h_fig = figure(3); set(h_fig,'WindowStyle','docked'); clf;
 [x_img_mesh,y_img_mesh] = meshgrid(x_img,y_img);
 [x_img_mesh,z_img_mesh] = meshgrid(x_img,z_img);
-subplot(1,2,1);
+subplot(2,3,1:2);
 h_plot_img = plot3(x_img_mesh(:),y_img_mesh(:),z_img_mesh(:),'c.');
 xlabel('x (m)')
 ylabel('y (m)')
@@ -123,15 +125,25 @@ grid on;
 hold on;
 h_plot_radar = plot3(raw.x,raw.y,raw.z,'b');
 h_plot_radar_start = plot3(raw.x(1),raw.y(1),raw.z(1),'bo');
-h_plot_target = plot3(target.pos(1),target.pos(2),target.pos(3),'rx','linewidth',4);
-h_plot_target_current = plot3(NaN,NaN,NaN,'bx','linewidth',4);
-legend([h_plot_img h_plot_radar h_plot_radar_start h_plot_target],'SAR image','Radar','Radar Start','Target')
-subplot(1,2,2);
-h_img = imagesc(nan(Nr_img,Nx_img)); % Used for optional saveVideo
+h_plot_target = plot3(target.pos(1,:),target.pos(2,:),target.pos(3,:),'rx','linewidth',4);
+h_plot_target_current = plot3(NaN,NaN,NaN,'kx','linewidth',4);
+legend([h_plot_img h_plot_radar h_plot_radar_start h_plot_target h_plot_target_current],'SAR image','Radar','Radar Start','Target(s)','Matched filter')
+h_sar_img_axes = subplot(2,3,3);
+h_sar_img = imagesc(nan(Nr_img,Nx_img)); % Used for optional saveVideo
+title('SAR image')
+subplot(2,3,4);
+imagesc(angle(raw.data)); % Used for optional saveVideo
+title('Raw data')
+subplot(2,3,5);
+h_matched_filter_img = imagesc(nan(Nt,Nx)); % Used for optional saveVideo
+title('SAR matched filter')
+subplot(2,3,6);
+h_product_img = imagesc(nan(Nt,Nx)); % Used for optional saveVideo
+title('SAR matched filter .* raw data')
 
 saveVideo = false;
 if saveVideo
-  fps = 30;
+  fps = 15;
   vidName = 'hw2_movie';
   vidName = 'hw2_movie_sar';
   try
@@ -176,10 +188,12 @@ for x_idx = 1:Nx_img
     % H_time: time domain window sys.fasttime_fh for each range line, Nt by Nx
     % HERE
 
-    % H_chirp: fast-time chirp response for each range line, Nt by Nx
+    % H_chirp: fast-time chirp response for each range line, Nt by Nx,
+    % should include only the chirp phase term without windowing
     % HERE
 
-    % H_sar: slow-time sar, 1 by Nx
+    % H_sar: slow-time sar, 1 by Nx, should include only the carrier phase
+    % term without windowing
     % HERE
 
     % img_matched_filter: create a 2D simulated raw dataset for a target at
@@ -193,7 +207,10 @@ for x_idx = 1:Nx_img
     if saveVideo
       % Update system geometry plot
       set(h_plot_target_current,'XData',x_img(x_idx),'YData',y_img(r_idx),'ZData',z_img(r_idx))
-      set(h_img,'CData',db(data_img));
+      set(h_sar_img,'CData',db(data_img));
+      clim(h_sar_img_axes, 117+[-60 0]);
+      set(h_matched_filter_img,'CData',angle(img_matched_filter));
+      set(h_product_img,'CData',angle(raw.data .* conj(img_matched_filter)));
       drawnow;
       writeVideo(vw, getframe(fig));
       Nfr = Nfr + 1;
@@ -225,7 +242,7 @@ dt = sar.time_img(2)-sar.time_img(1);
 Nr_img = length(sar.time_img);
 
 % df: frequency spacing of the fast-time DFT of the SAR image based on dt
-% and Nt_img
+% and Nr_img
 % HERE
 
 % freq_img: image frequency axis
@@ -319,7 +336,7 @@ for t_idx = 1:size(target.pos,2)
   Ninterp = 5;
 
   % interp_window: Create the window for the resampling target cuts
-  interp_window = kaiser(2*Ninterp+1,2.5);
+  interp_window = kaiser(2*Ninterp+1,2.5).';
 
   % target_alongtrack: along-track target position relative to the scene
   % center
@@ -340,8 +357,10 @@ for t_idx = 1:size(target.pos,2)
   good_mask_rlines = interp_input_rlines >= 1 & interp_input_rlines <= Nx_img;
 
   % sinc_window: create the along-track sinc-window sampled at the existing
-  % positions and peak centered on the desired target position
-  sinc_window = sinc( ( x_img(interp_input_rlines(good_mask_rlines)) - target.pos(1,t_idx) ) / 1 );
+  % positions and peak centered on the desired target position. Component-wise
+  % multiply by the interp_window to truncate the sinc-window
+  sinc_window = sinc( ( x_img(interp_input_rlines(good_mask_rlines)) - target.pos(1,t_idx) ) / img.dx ) ...
+    .* interp_window(good_mask_rlines);
 
   % range_cut: Resample in along-track at the particular target x-position for the
   % range-cut
@@ -358,7 +377,10 @@ for t_idx = 1:size(target.pos,2)
   % that has its origin at the scene center
   % HERE
 
+  % max_idx: Find the index of the maximum value in range_cut_Mt
   [~,max_idx] = max(range_cut_Mt);
+
+  % target_range_imaged: Determine the range position of the target in the image
   target_range_imaged = range_img_Mt(max_idx)
 
   h_fig = figure(8); set(h_fig,'WindowStyle','docked'); clf;
@@ -381,9 +403,15 @@ for t_idx = 1:size(target.pos,2)
   % - uses sinc interpolation to cut directly through the target even when
   %   the target is not aligned with an image pixel
   % =======================================================================
-  
+
   % Mx: Oversample rate in along-track
   Mx = 10;
+
+  % Ninterp: Set interpolation window size for resampling target cuts
+  Ninterp = 5;
+
+  % interp_window: Create the window for the resampling target cuts
+  interp_window = kaiser(2*Ninterp+1,2.5);
 
   % yc: y-offset of radar to scene center
   yc = sys.altitude * tan(sys.inc_angle);
@@ -395,7 +423,7 @@ for t_idx = 1:size(target.pos,2)
   % scene center. Note that the target's coordinates in target.pos are
   % relative to the scene center.
   target_range = vecnorm([yc;zc]-target.pos([2 3],t_idx),2,1) - vecnorm([yc;zc],2,1)
-  
+
   % closest_rbin: find the range bin index that is closest to the
   % target's range-position using r_img (which is relative to the scene
   % center)
@@ -407,26 +435,30 @@ for t_idx = 1:size(target.pos,2)
   % lines)
   interp_input_rbins = closest_rbin+(-Ninterp:Ninterp);
 
-  % good_mask_rbins: create a logical vector aligned with interp_input_rlines
-  % that is true where the range lines are in [1,Nr_img]
+  % good_mask_rbins: create a logical vector aligned with interp_input_rbins
+  % that is true where the range bins are in [1,Nr_img]
   good_mask_rbins = interp_input_rbins >= 1 & interp_input_rbins <= Nr_img;
 
-  % sinc_window: create the along-track sinc-window sampled at the existing
-  % positions and peak centered on the desired target position
-  sinc_window = sinc( ( r_img(interp_input_rbins(good_mask_rbins)) - target_range ) / 1 );
+  % sinc_window: create the range sinc-window sampled at the existing range
+  % positions and peak centered on the desired target position. Component-wise
+  % multiply by the interp_window to truncate the sinc-window
+  sinc_window = sinc( ( r_img(interp_input_rbins(good_mask_rbins)) - target_range ) / img.dr ) ...
+    .* interp_window(good_mask_rbins);
 
   % along_track_cut: Resample in range at the particular target r-position for the
   % along-track-cut
   along_track_cut =  sum(sinc_window .* sar.data_img(interp_input_rbins(good_mask_rbins),:), 1);
 
-  % along_track_cut_Mx: Oversample the range-cut by Mx
+  % along_track_cut_Mx: Oversample the along-track-cut by Mx
   along_track_cut_Mx = interpft(along_track_cut,Nx_img*Mx);
 
   % x_img_Mx: Oversample the sar.x_img x-axis by Mx to align with the
   % output of interpft
   % HERE
 
+  % max_idx: Find the index of the maximum value in along_track_cut_Mx
   [~,max_idx] = max(along_track_cut_Mx);
+  % target_alongtrack_imaged: Determine the x position of the target in the image
   target_alongtrack_imaged = x_img_Mx(max_idx)
 
   h_fig = figure(10); set(h_fig,'WindowStyle','docked'); clf;

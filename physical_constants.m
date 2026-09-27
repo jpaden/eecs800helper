@@ -51,7 +51,10 @@ WGS84.semiminor = 6356752.31424518;
 WGS84.flattening = 298.257223563;
 WGS84.eccentricity = 0.0818191908426215;
 WGS84.ellipsoid = [WGS84.semimajor WGS84.eccentricity];
-WGS84.spheroid = wgs84Ellipsoid('meter');
+% WGS84.spheroid requires the Mapping Toolbox, skip if not available
+if license('test','MAP_Toolbox') && exist('wgs84Ellipsoid','file')
+  WGS84.spheroid = wgs84Ellipsoid('meter');
+end
 % wgs84Ellipsoid = referenceEllipsoid with defining properties:
 %                  Code: 7030
 %                  Name: 'WGS 84'

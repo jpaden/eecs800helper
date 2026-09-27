@@ -1,4 +1,4 @@
-% 2026 EECS 800 hw1 problem 4 radar simulator
+% 2026 EECS 800 hw1 problem 4 radar pulse compression
 %
 % SAR pulse compression
 %
@@ -41,14 +41,16 @@ end
 
 physical_constants; % Loads c, Boltzmann's constant, e0, u0, etc.
 
-% pc_window_fh: Fast time time-domain window function handle
-pc_window_fh = @(time_norm) tukeywin_cont(time_norm,0);
+% pc_window_fh: Pulse compression frequency-domain window function handle
+pc_window_fh = @(freq_norm) tukeywin_cont(freq_norm,0);
+
 %% 2. Load raw data parameters
 
 fn_sys = fullfile(my_temp_dir,'raw_rds.mat');
 load(fn_sys); % Loads sys, img, raw, and target
 sys.path_dir = my_path_dir;
 sys.temp_dir = my_temp_dir;
+
 %% 3. Define dependent image parameters and axes
 
 % Nt: Redefine from raw.time
@@ -64,8 +66,8 @@ Nx = length(raw.x);
 dx = raw.x(2)-raw.x(1);
 
 % HERE: Copy contents from these hw1_problem3 sections and reference raw.time and raw.x instead of time and x:
-% HERE: 3 Define dependent image parameters
-% HERE: 7 Define dependent axes
+% HERE: 4. Define dependent image parameters
+% HERE: 8. Define dependent axes
 
 %% 4. Pulse compression
 
@@ -83,6 +85,7 @@ time_pc = raw.time;
 % range_pc: create a range axis associated with the pulse compression time
 % axis
 % HERE
+
 %% 5. Time vs space image plot in figure 3
 
 h_fig = figure(3); set(h_fig,'WindowStyle','docked'); clf;
@@ -93,6 +96,7 @@ caxis([-30 0]+max(db(data_pc(:))));
 title('Pulse compressed image')
 xlabel('Along-track position (m)');
 ylabel('Time ({\mu}s)');
+
 %% 6. Range vs slow-time image plot in figure 4
 
 h_fig = figure(4); set(h_fig,'WindowStyle','docked'); clf;
@@ -103,13 +107,21 @@ caxis([-30 0]+max(db(data_pc(:))));
 title('Pulse compressed image')
 xlabel('Slow/azimuth time (sec)');
 ylabel('Range (m)');
-%% 7. Range line (a-scope) plot of range line closest to scene center in figure 5
+
+%% 7. Range line (a-scope) plot of range line closest to target in figure 5
 
 % This only produces useful results if there is an isolated target at the
 % scene center
 
+% yc: y-offset of radar to scene center
+yc = sys.altitude * tan(sys.inc_angle);
+
+% zc: z-offset of radar to scene center
+zc = sys.altitude;
+
+% Find the range line, rline, and range bin, rbin, closest to the first target in the target.pos array.
 [~,rline] = min(abs(target.pos(1,1)-raw.x));
-[~,rbin] = min(abs( sqrt(target.pos(2,1)^2+target.pos(3,1)^2) - (range_pc-r_ref)));
+[~,rbin] = min(abs( vecnorm([yc;zc]-target.pos([2 3],1),2,1) - range_pc ));
 
 h_fig = figure(5); set(h_fig,'WindowStyle','docked'); clf;
 plot(time_pc*1e6, db(data_pc(:,rline)))
@@ -119,6 +131,7 @@ ylim([-80 0]+max(db(data_pc(:,rline)))); % Comment these for debugging
 title('Range line at scene center');
 xlabel('Time ({\mu}s)');
 ylabel('Relative power (dB)');
+
 %% 8. Phase vs along-track and range vs along-track plot in figure 6
 
 % This only works if there is one scatterer that is dominant in every range
@@ -152,6 +165,7 @@ title('Compare measured and expected time and phase');
 xlabel('Along-track (m)')
 ylabel('Time delay ({\mu}s)')
 legend('Measured Time','Measured Phase', 'Expected Time','Expected Phase','location','best')
+
 %% 9. Instantaneous frequency vs along-track in figure 7
 
 % This only works properly if previous section works
@@ -170,15 +184,41 @@ x_measured = (raw.x(1:end-1)+raw.x(2:end))/2; % x-position of kx_measured vector
 % each range line
 % HERE
 
+% p_kx_linear: linear fit to kx_expected at the origin. Shows that
+% hyperbolic phase is almost linear FM chirp in wavenumber domain. The
+% short-time-Fourier-transform STFT of max_val also shows this.
+p_kx_linear = polyfit(raw.x( (-1:1) + rline ), kx_expected( (-1:1) + rline ), 1);
+
 h_fig = figure(7); set(h_fig,'WindowStyle','docked'); clf;
-plot(x_measured, kx_measured);
+plot(x_measured, kx_measured,'LineWidth',3);
 hold on
-plot(raw.x, kx_expected);
+plot(raw.x, kx_expected, '--','LineWidth',2);
+plot(raw.x( round(linspace(1,end,11)) ), polyval(p_kx_linear, raw.x( round(linspace(1,end,11)) )),'.','markersize',20);
 grid('on');
 xlim([raw.x(1) raw.x(end)]);
 title('k_x for target')
 xlabel('Along-track (m)')
-ylabel('k_x (rad/s)')
-legend('Measured k_x','Expected k_x','location','best')
+ylabel('k_x (rad/m)')
+legend('Measured k_x','Expected k_x','Linear approx. k_x','location','best')
 
-hw1_problem4_check
+% stft_out,stft_f,stft_x: short-time-Fourier-transform of max_val. The
+% along-track sample spacing is dx, so the equivalent "sample rate" passed
+% to stft is 1/dx (samples/m). stft then returns stft_f in cycles/m and
+% stft_x in m relative to the first sample (raw.x(1)).
+[stft_out,stft_f,stft_x] = stft(max_val,1/dx);
+
+% stft_kx: convert the stft frequency axis (cycles/m) to wavenumber (rad/m)
+stft_kx = 2*pi*stft_f;
+
+h_fig = figure(8); set(h_fig,'WindowStyle','docked'); clf;
+imagesc(raw.x(1)+stft_x, stft_kx, db(stft_out));
+set(gca,'YDir','normal');
+hcolor = colorbar;
+set(get(hcolor,'YLabel'),'String','Relative power (dB)');
+caxis([-40 0]+max(db(stft_out(:))));
+ylim([-1 1]*1.5*max(abs(kx_measured))); % Comment this to see the full k_x extent
+title('STFT of target peak')
+xlabel('Along-track (m)')
+ylabel('k_x (rad/m)')
+
+hw1_problem4_check;

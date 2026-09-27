@@ -1,4 +1,4 @@
-% 2026 EECS 800 hw1 problem 2 radar simulator
+% 2026 EECS 800 hw1 problem 2 radar link budget
 % 
 % Radar equation link budget, along-track SAR resolution/sampling
 
@@ -23,6 +23,7 @@ fn_sys = fullfile(my_path_dir,'eecs800helper','sys_capellav1.yaml');
 sys = yaml.loadFile(fn_sys);
 sys.path_dir = my_path_dir;
 sys.temp_dir = my_temp_dir;
+
 %% 2. Expected receiver power for point target, Pr and Pr_dB
 
 % R: magnitude of range vector to target
@@ -31,8 +32,11 @@ sys.temp_dir = my_temp_dir;
 % sigma_RCS: radar cross section of point target
 % HERE (EXAMPLE: "sigma_RCS = 1;")
 
-% lambda_c: wavelength at the center frequency
-% HERE (EXAMPLE: "lambda_c = c / sys.fc;")
+% lambda_fc: wavelength at the center frequency
+% HERE (EXAMPLE: "lambda_fc = c / sys.fc;")
+
+% Gpc: pulse compression gain
+% HERE
 
 % Pr_point: received signal power in W
 % HERE
@@ -48,6 +52,9 @@ sys.temp_dir = my_temp_dir;
 % sigma_0: area-normalized backscatter
 % HERE
 
+% sigma_t: time resolution (s)
+% HERE
+
 % sigma_r: range resolution (m)
 % HERE
 
@@ -55,9 +62,6 @@ sys.temp_dir = my_temp_dir;
 % HERE
 
 % A: scattering area (m^2)
-% HERE
-
-% Gpc: pulse compression gain
 % HERE
 
 % Pr: received signal power in W
@@ -98,13 +102,13 @@ sys.temp_dir = my_temp_dir;
 
 %% 8. SAR wavenumber
 
-% k: magnitude of the wavenumber at the center frequency
+% k_fc: magnitude of the wavenumber at the center frequency
 % HERE
 
-% kx_min: minimum along-track (x-dim) wavenumber for the beamwidth sys.beta_X
+% kx_min: minimum along-track (x-dim) wavenumber for the beamwidth sys.beta_x
 % HERE
 
-% kx_max: maximum along-track (x-dim) wavenumber for the beamwidth sys.beta_X
+% kx_max: maximum along-track (x-dim) wavenumber for the beamwidth sys.beta_x
 % HERE
 
 %% 9. Nyquist sampling rate, dx_max
@@ -114,3 +118,5 @@ sys.temp_dir = my_temp_dir;
 
 % dx_max: maximum sample spacing (Nyquist sample spacing)
 % HERE
+
+hw1_problem2_check;

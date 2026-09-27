@@ -90,45 +90,53 @@ img = yaml.loadFile(fn_img);
 % * rows: x,y,z
 % * columns: each column is a separate point target
 % target.sigma_RCS: (1,N_targets) vector
+
+target.pos = zeros(3,0);
+target.sigma_RCS = [];
+
 if 0
   % Near range, start along-track (4.5 pixels from each border)
-  target.pos = [ ...
+  target.pos(:,end+1) = [ ...
     img.dx*-45.5
     img.dr*45.5*sin(sys.inc_angle)
     img.dr*45.5*cos(sys.inc_angle)];
-  target.sigma_RCS = [1];
+  target.sigma_RCS(1,end+1) = [1];
+end
 
-elseif 0
+if 0
   % Far range, start along-track (4.5 pixels from each border)
-  target.pos = [ ...
+  target.pos(:,end+1) = [ ...
     img.dx*-45.5
     img.dr*-44.5*sin(sys.inc_angle)
     img.dr*-44.5*cos(sys.inc_angle)];
-  target.sigma_RCS = [1];
+  target.sigma_RCS(1,end+1) = [1];
+end
 
-elseif 0
+if 0
   % Near range, end along-track (4.5 pixels from each border)
-  target.pos = [ ...
+  target.pos(:,end+1) = [ ...
     img.dx*44.5
     img.dr*45.5*sin(sys.inc_angle)
     img.dr*45.5*cos(sys.inc_angle)];
-  target.sigma_RCS = [1];
+  target.sigma_RCS(1,end+1) = [1];
+end
 
-elseif 0
+if 0
   % Far range, end along-track (4.5 pixels from each border)
-  target.pos = [ ...
+  target.pos(:,end+1) = [ ...
     img.dx*44.5
     img.dr*-44.5*sin(sys.inc_angle)
     img.dr*-44.5*cos(sys.inc_angle)];
-  target.sigma_RCS = [1];
+  target.sigma_RCS(1,end+1) = [1];
+end
 
-else
+if isempty(target.pos) || 0 % Force at least one target to be present
   % Scene center
-  target.pos = [ ...
+  target.pos(:,end+1) = [ ...
     img.dx*0
     img.dr*0*sin(sys.inc_angle)
     img.dr*0*cos(sys.inc_angle)];
-  target.sigma_RCS = [1];
+  target.sigma_RCS(1,end+1) = [1];
 end
 
 %% 6. Create time axis
@@ -167,7 +175,7 @@ end
 % Nt: The length of the time vector. time should be size Nt,1
 % HERE
 
-%% 7. Create space axis
+%% 7. Create radar trajectory spatial axes
 
 % dx: Define the range line spacing from sys.vel and sys.f_prf. It is the
 % distance the radar travels from one pulse to the next.
@@ -294,7 +302,7 @@ imagesc(eta,time*c/2,angle(data));
 hcolor = colorbar;
 set(get(hcolor,'YLabel'),'String','Phase (rad)');
 title('Raw data')
-xlabel('Along-track position (m)');
-ylabel('Time ({\mu}s)');
+xlabel('Slow/azimuth time (sec)');
+ylabel('Range (m)');
 
 hw2_problem1_check;

@@ -49,10 +49,12 @@ sys.path_dir = my_path_dir;
 sys.temp_dir = my_temp_dir;
 sys.fasttime_fh = str2func(sys.fasttime_fh);
 sys.slowtime_fh = str2func(sys.slowtime_fh);
+
 %% 3. Load image parameters
 
 fn_img = fullfile(my_path_dir,'eecs800helper','img_rds.yaml');
 img = yaml.loadFile(fn_img);
+
 %% 4. Define dependent image parameters
 
 % lambda_fc: wavelength at center frequency (m)
@@ -84,6 +86,7 @@ img = yaml.loadFile(fn_img);
 % frequency, and the desired image along-track resolution (m) specified in
 % the img structure.
 % HERE
+
 %% 5. Define target(s)
 
 % target.pos: (3,N_targets) matrix
@@ -95,6 +98,7 @@ target.pos = [ ...
   0
   0];
 target.sigma_RCS = [1];
+
 %% 6. Create time axis
 
 % t0: time of first arrival from the near side of the image swath. Define
@@ -130,6 +134,7 @@ target.sigma_RCS = [1];
 
 % Nt: The length of the time vector. time should be size Nt,1
 % HERE
+
 %% 7. Create radar trajectory spatial axes
 
 % dx: Define the range line spacing from sys.vel and sys.f_prf. It is the
@@ -155,6 +160,7 @@ target.sigma_RCS = [1];
 % z: Radar's z-position or elevation position. The elevation position is
 % the offset from the scene center using sys.altitude. Should be size 1,Nx
 % HERE
+
 %% 8. Define dependent axes
 
 % df: frequency domain spacing (Hz)
@@ -190,6 +196,7 @@ target.sigma_RCS = [1];
 % should be a row vector since it is a slow-time axis. This should be
 % ifftshift so it aligns with the fft output sample ordering.
 % HERE
+
 %% 9. Define linear FM chirp
 
 % Kr: fast time chirp rate (Hz/sec) from sys.B and sys.Tpd
@@ -234,6 +241,7 @@ for t_idx = 1:size(target.pos,2)
   % HERE
 
 end
+
 %% 11. Save simulation data
 
 raw = [];
@@ -246,6 +254,7 @@ raw.ref = ref;
 
 fn_raw = fullfile(sys.temp_dir,'raw_rds.mat');
 save(fn_raw,'raw','sys','img','target','-v7.3','-nocompression');
+
 %% 12. Time vs space image plot in figure 1
 
 h_fig = figure(1); set(h_fig,'WindowStyle','docked'); clf;
@@ -265,6 +274,7 @@ set(get(hcolor,'YLabel'),'String','Phase (rad)');
 title('Raw data')
 xlabel('Along-track position (m)');
 ylabel('Time ({\mu}s)');
+
 %% 13. Range vs slow-time image plot in figure 2
 
 h_fig = figure(2); set(h_fig,'WindowStyle','docked'); clf;
@@ -282,7 +292,7 @@ imagesc(eta,time*c/2,angle(data));
 hcolor = colorbar;
 set(get(hcolor,'YLabel'),'String','Phase (rad)');
 title('Raw data')
-xlabel('Along-track position (m)');
-ylabel('Time ({\mu}s)');
+xlabel('Slow/azimuth time (sec)');
+ylabel('Range (m)');
 
-hw1_problem3_check
+hw1_problem3_check;

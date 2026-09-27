@@ -70,7 +70,7 @@ sys.temp_dir = my_temp_dir;
 
 % x_img: Create the output image x-axis. This axis is parallel to the
 % along-track vector. The origin is at the scene center. Use (1) the IDFT
-% definition after ifftshift, (2) Nx_img, and (3) img.dx to determine the
+% definition after fftshift, (2) Nx_img, and (3) img.dx to determine the
 % points.
 % HERE
 
@@ -79,7 +79,7 @@ sys.temp_dir = my_temp_dir;
 % cylinder is parallel and centered on the along-track vector. Normally rho
 % must be positive, but shift this axis so that the zero lies on the scene
 % center. To determine the start/stop of this axis, use (1) the IDFT
-% definition after ifftshift, (2) Nr_img, and (3) img.dr to determine the
+% definition after fftshift, (2) Nr_img, and (3) img.dr to determine the
 % points.
 % HERE
 
@@ -195,22 +195,25 @@ for x_idx = 1:Nx_img
     % in order to apply the sar_window_fh
     % HERE
 
-    % td_bins: Convert time delay to range bins (do not round the result)
+    % td_bins: Convert time delay to range bins (do not round the result),
+    % this should be bins relative to the start time and not time=0, and
+    % add one to account for matlab being 1-indexed instead of 0-indexed in
+    % its arrays
     % HERE
 
     % H_kx: create the sar processor window from kx_expected and B_kx
     % HERE
-    
+
     % x_mask: mask of which raw range lines will contribute to the output
     % using H_kx > 0.
     x_mask = find(H_kx > 0);
 
     % sinc_rbins: Create a vector of the range bins that will be required
-    % for the sinc-interpolation Normally this type of SAR processor would
+    % for the sinc-interpolation. Normally this type of SAR processor would
     % be done one range line at a time, but is slow when working on scalars
     % and small vectors so instead we will implement this like a 2D filter
     % so that we can take advantage of Matlab's efficient vector
-    % operations. This extent of this 2D filter will be much smaller since
+    % operations. The extent of this 2D filter will be much smaller since
     % we have done pulse compression and will restrict to our along-track
     % window. sinc_rbins covers the range bin support for all the sinc
     % interpolation filters required for this image pixel.
@@ -218,7 +221,7 @@ for x_idx = 1:Nx_img
 
     % h_sinc: create the sinc-interpolation filters for every range line
     % all at once, this will be a length(sinc_rbins) by length(x_mask)
-    % 2D filter, use tukeywin_cont(TIME_ARGUMENT,1) to truncate the since
+    % 2D filter, use tukeywin_cont(TIME_ARGUMENT,1) to truncate the sinc
     % with a Hanning window to sinc_window_length range bins
     % HERE
 
@@ -250,7 +253,7 @@ dt = sar.time_img(2)-sar.time_img(1);
 Nr_img = length(sar.time_img);
 
 % df: frequency spacing of the fast-time DFT of the SAR image based on dt
-% and Nt_img
+% and Nr_img
 % HERE
 
 % freq_img: image frequency axis
@@ -312,7 +315,7 @@ for t_idx = 1:size(target.pos,2)
   Ninterp = 5;
 
   % interp_window: Create the window for the resampling target cuts
-  interp_window = kaiser(2*Ninterp+1,2.5);
+  interp_window = kaiser(2*Ninterp+1,2.5).';
 
   % target_alongtrack: along-track target position relative to the scene
   % center
@@ -333,8 +336,10 @@ for t_idx = 1:size(target.pos,2)
   good_mask_rlines = interp_input_rlines >= 1 & interp_input_rlines <= Nx_img;
 
   % sinc_window: create the along-track sinc-window sampled at the existing
-  % positions and peak centered on the desired target position
-  sinc_window = sinc( ( x_img(interp_input_rlines(good_mask_rlines)) - target.pos(1,t_idx) ) / 1 );
+  % positions and peak centered on the desired target position. Component-wise
+  % multiply by the interp_window to truncate the sinc-window
+  sinc_window = sinc( ( x_img(interp_input_rlines(good_mask_rlines)) - target.pos(1,t_idx) ) / img.dx ) ...
+    .* interp_window(good_mask_rlines);
 
   % range_cut: Resample in along-track at the particular target x-position for the
   % range-cut
@@ -351,7 +356,10 @@ for t_idx = 1:size(target.pos,2)
   % that has its origin at the scene center
   % HERE
 
+  % max_idx: Find the index of the maximum value in range_cut_Mt
   [~,max_idx] = max(range_cut_Mt);
+
+  % target_range_imaged: Determine the range position of the target in the image
   target_range_imaged = range_img_Mt(max_idx)
 
   h_fig = figure(8); set(h_fig,'WindowStyle','docked'); clf;
@@ -378,6 +386,12 @@ for t_idx = 1:size(target.pos,2)
   % Mx: Oversample rate in along-track
   Mx = 10;
 
+  % Ninterp: Set interpolation window size for resampling target cuts
+  Ninterp = 5;
+
+  % interp_window: Create the window for the resampling target cuts
+  interp_window = kaiser(2*Ninterp+1,2.5);
+
   % yc: y-offset of radar to scene center
   yc = sys.altitude * tan(sys.inc_angle);
 
@@ -388,7 +402,7 @@ for t_idx = 1:size(target.pos,2)
   % scene center. Note that the target's coordinates in target.pos are
   % relative to the scene center.
   target_range = vecnorm([yc;zc]-target.pos([2 3],t_idx),2,1) - vecnorm([yc;zc],2,1)
-  
+
   % closest_rbin: find the range bin index that is closest to the
   % target's range-position using r_img (which is relative to the scene
   % center)
@@ -400,26 +414,30 @@ for t_idx = 1:size(target.pos,2)
   % lines)
   interp_input_rbins = closest_rbin+(-Ninterp:Ninterp);
 
-  % good_mask_rbins: create a logical vector aligned with interp_input_rlines
-  % that is true where the range lines are in [1,Nr_img]
+  % good_mask_rbins: create a logical vector aligned with interp_input_rbins
+  % that is true where the range bins are in [1,Nr_img]
   good_mask_rbins = interp_input_rbins >= 1 & interp_input_rbins <= Nr_img;
 
-  % sinc_window: create the along-track sinc-window sampled at the existing
-  % positions and peak centered on the desired target position
-  sinc_window = sinc( ( r_img(interp_input_rbins(good_mask_rbins)) - target_range ) / 1 );
+  % sinc_window: create the range sinc-window sampled at the existing range
+  % positions and peak centered on the desired target position. Component-wise
+  % multiply by the interp_window to truncate the sinc-window
+  sinc_window = sinc( ( r_img(interp_input_rbins(good_mask_rbins)) - target_range ) / img.dr ) ...
+    .* interp_window(good_mask_rbins);
 
   % along_track_cut: Resample in range at the particular target r-position for the
   % along-track-cut
   along_track_cut =  sum(sinc_window .* sar.data_img(interp_input_rbins(good_mask_rbins),:), 1);
 
-  % along_track_cut_Mx: Oversample the range-cut by Mx
+  % along_track_cut_Mx: Oversample the along-track-cut by Mx
   along_track_cut_Mx = interpft(along_track_cut,Nx_img*Mx);
 
   % x_img_Mx: Oversample the sar.x_img x-axis by Mx to align with the
   % output of interpft
   % HERE
 
+  % max_idx: Find the index of the maximum value in along_track_cut_Mx
   [~,max_idx] = max(along_track_cut_Mx);
+  % target_alongtrack_imaged: Determine the x position of the target in the image
   target_alongtrack_imaged = x_img_Mx(max_idx)
 
   h_fig = figure(10); set(h_fig,'WindowStyle','docked'); clf;

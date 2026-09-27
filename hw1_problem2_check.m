@@ -14,6 +14,9 @@ function results = hw1_problem2_check(varargin)
 % Options (name/value pairs)
 %   'tol_pct'       percent error allowed on values and norms (default 1.0)
 %   'tol_dB'        absolute error allowed on dB-valued answers (default 0.1)
+%   'tol_phase_deg' absolute error allowed, in degrees, on the phase of an
+%                   array's coherent sum (default 0.5). Problem 2 has no
+%                   array answers, so it goes unused here.
 %   'tol_endpoint_pct'  percent error allowed on the first/last element of
 %                   an array (default 10.0). Looser than 'tol_pct' on
 %                   purpose: the endpoint test exists to catch a reversed or
@@ -41,8 +44,11 @@ function results = hw1_problem2_check(varargin)
 %   * Section 5 asks for the ORIGINAL sys.vel to be displayed and then
 %     overwritten. Only the final value survives to the end of the script, so
 %     that is what is checked.
-%   * R and Gpc are requested in more than one section but hold the same
-%     value in each, so each is checked once.
+%   * R is requested in sections 2 and 3 but holds the same value in each,
+%     so it is checked once.
+%   * lambda_fc and k_fc are also accepted under the names "lambda_c" and
+%     "k", which the original template used. The report says when the
+%     alternate name was found.
 %   * The reference was generated with sys_capellav1.yaml as distributed.
 %     Changing it invalidates the comparison.
 %
@@ -51,7 +57,7 @@ function results = hw1_problem2_check(varargin)
 %% Options
 
 opt = struct('show_expected', false, 'tol_pct', 1.0, 'tol_endpoint_pct', 10.0, ...
-  'tol_dB', 0.1, 'workspace', 'caller');
+  'tol_dB', 0.1, 'tol_phase_deg', 0.5, 'workspace', 'caller');
 valid_opts = fieldnames(opt);
 if mod(numel(varargin),2) ~= 0
   error('hw1_problem2_check:badInput','Options must be name/value pairs.');
@@ -65,38 +71,44 @@ for arg_idx = 1:2:numel(varargin)
 end
 
 %% Reference answers
-% Columns: {section, name, kind, size, value/norm, first element, last element, alias[, tol_pct]}
+% Columns: {section, name, kind, size, value/norm, first element, last element, alias, tol_pct, phase, angle_norm}
 %   tol_pct (optional 9th column) overrides the 'tol_pct' option for that row;
 %   leave it [] to use the option. Use it where a common mistake lands
 %   inside the default tolerance.
+%   phase (10th column) is angle(sum(v(:))) in radians for a complex array,
+%   NaN for a real array or where the sum is ~0 (that test is then skipped),
+%   and [] for a scalar. angle_norm (11th column) is norm(angle(v(:))) for
+%   an array and [] for a scalar. Both are plain constants like every other
+%   column.
 %   kind 's' -> scalar graded on percent error
 %   kind 'd' -> scalar graded on absolute dB error
 %   kind 'a' -> vector/matrix graded on size and Frobenius norm (none here)
 
 ref = { ...
-  '2',   'R',              's', [1 1], 742462.120245875,     0, 0, ''; ...
-  '2',   'sigma_RCS',      's', [1 1], 1,                    0, 0, ''; ...
-  '2',   'lambda_c',       's', [1 1], 0.0310665759585850,   0, 0, ''; ...
-  '2',   'Pr_point',       's', [1 1], 3.82306104352389e-14, 0, 0, ''; ...
-  '2',   'Pr_point_dB',    'd', [1 1], -134.175887674652,    0, 0, ''; ...
-  '3',   'sigma_0',        's', [1 1], 0.1,                  0, 0, ''; ...
-  '3',   'sigma_r',        's', [1 1], 0.299792458000345,    0, 0, ''; ...
-  '3',   'sigma_rg',       's', [1 1], 0.423970560001255,    0, 0, ''; ...
-  '3',   'A',              's', [1 1], 2142.65365781629,     0, 0, ''; ...
-  '3',   'Gpc',            's', [1 1], 10000,                0, 0, ''; ...
-  '3',   'Pr',             's', [1 1], 8.19149572896142e-12, 0, 0, ''; ...
-  '3',   'Pr_dB',          'd', [1 1], -110.866367908495,    0, 0, ''; ...
-  '4',   'Pn',             's', [1 1], 4.18265230688946e-12, 0, 0, ''; ...
-  '4',   'Pn_dB',          'd', [1 1], -113.785482357003,    0, 0, ''; ...
-  '5',   'sys.vel',        's', [1 1], 7605.93909173527,     0, 0, ''; ...
-  '6',   'sigma_NESZ',     's', [1 1], 0.0340368981245839,   0, 0, ''; ...
-  '6',   'sigma_NESZ_dB',  'd', [1 1], -14.6805002522548,    0, 0, ''; ...
-  '7',   'dx',             's', [1 1], 1.52118781834705,     0, 0, ''; ...
-  '8',   'k',              's', [1 1], 404.498089236209,     0, 0, ''; ...
-  '8',   'kx_min',         's', [1 1], -1.37666291999443,    0, 0, ''; ...
-  '8',   'kx_max',         's', [1 1], 1.37666291999443,     0, 0, ''; ...
-  '9',   'B_kx',           's', [1 1], 2.75332583998887,     0, 0, ''; ...
-  '9',   'dx_max',         's', [1 1], 2.28203477260977,     0, 0, ''; ...
+  '2',  'R',                   's', [1 1],        742462.120245875,        0, 0, '',            [], [], [];
+  '2',  'sigma_RCS',           's', [1 1],        1,                       0, 0, '',            [], [], [];
+  '2',  'lambda_fc',           's', [1 1],        0.031066575958585,       0, 0, 'lambda_c',    [], [], [];
+  '2',  'Gpc',                 's', [1 1],        10000,                   0, 0, '',            [], [], [];
+  '2',  'Pr_point',            's', [1 1],        3.82306104352389e-14,    0, 0, '',            [], [], [];
+  '2',  'Pr_point_dB',         'd', [1 1],        -134.175887674652,       0, 0, '',            [], [], [];
+  '3',  'sigma_0',             's', [1 1],        0.1,                     0, 0, '',            [], [], [];
+  '3',  'sigma_t',             's', [1 1],        2e-09,                   0, 0, '',            [], [], [];
+  '3',  'sigma_r',             's', [1 1],        0.299792458000345,       0, 0, '',            [], [], [];
+  '3',  'sigma_rg',            's', [1 1],        0.423970560001255,       0, 0, '',            [], [], [];
+  '3',  'A',                   's', [1 1],        2142.65365781629,        0, 0, '',            [], [], [];
+  '3',  'Pr',                  's', [1 1],        8.19149572896142e-12,    0, 0, '',            [], [], [];
+  '3',  'Pr_dB',               'd', [1 1],        -110.866367908495,       0, 0, '',            [], [], [];
+  '4',  'Pn',                  's', [1 1],        4.18265230688946e-12,    0, 0, '',            [], [], [];
+  '4',  'Pn_dB',               'd', [1 1],        -113.785482357003,       0, 0, '',            [], [], [];
+  '5',  'sys.vel',             's', [1 1],        7605.93909173527,        0, 0, '',            [], [], [];
+  '6',  'sigma_NESZ',          's', [1 1],        0.0340368981245839,      0, 0, '',            [], [], [];
+  '6',  'sigma_NESZ_dB',       'd', [1 1],        -14.6805002522548,       0, 0, '',            [], [], [];
+  '7',  'dx',                  's', [1 1],        1.52118781834705,        0, 0, '',            [], [], [];
+  '8',  'k_fc',                's', [1 1],        404.498089236209,        0, 0, 'k',           [], [], [];
+  '8',  'kx_min',              's', [1 1],        -1.37666291999443,       0, 0, '',            [], [], [];
+  '8',  'kx_max',              's', [1 1],        1.37666291999443,        0, 0, '',            [], [], [];
+  '9',  'B_kx',                's', [1 1],        2.75332583998887,        0, 0, '',            [], [], [];
+  '9',  'dx_max',              's', [1 1],        2.28203477260977,        0, 0, '',            [], [], [];
   };
 
 %% Snapshot the variables of interest
@@ -148,7 +160,7 @@ end
 function results = run_check(ref, opt, title_str, found, used, vals)
 
 results = struct('section', {}, 'name', {}, 'kind', {}, 'value', {}, ...
-  'pct_err', {}, 'status', {}, 'note', {});
+  'pct_err', {}, 'phase_err_deg', {}, 'angle_norm_pct', {}, 'status', {}, 'note', {});
 n_pass = 0;
 n_fail = 0;
 n_absent = 0;
@@ -159,6 +171,9 @@ fprintf(' EECS 800 %s -- answer check\n', title_str);
 fprintf(' Tolerance: %.3g%% on values and norms', opt.tol_pct);
 if any(strcmp(ref(:,3),'d'))
   fprintf(', %.3g dB on dB values', opt.tol_dB);
+end
+if size(ref,2) >= 10 && any(cellfun(@(c) ~isempty(c) && ~isnan(c), ref(:,10)))
+  fprintf(', %.3g deg on the phase of an array''s sum', opt.tol_phase_deg);
 end
 fprintf('.\n');
 if size(ref,2) >= 9
@@ -198,6 +213,8 @@ for idx = 1:size(ref,1)
 
   note     = '';
   pct      = NaN;
+  ph_err   = NaN;
+  an_pct   = NaN;
   shown    = NaN;
   size_str = '--';
   val      = [];
@@ -302,6 +319,50 @@ for idx = 1:size(ref,1)
           end
         end
 
+        % phase of the coherent sum catches a conjugated array or a sign
+        % error in an exponent, which leave the norm (and zero endpoints)
+        % untouched. Skipped (NaN) where the reference sum is numerically
+        % zero, e.g. a symmetric axis, or for a real-valued array.
+        if size(ref,2) >= 10 && ~isempty(ref{idx,10}) && ~isnan(ref{idx,10})
+          e_ph  = ref{idx,10};
+          v_sum = sum(val(:));
+          if abs(v_sum) <= 1e-9*sqrt(numel(val))*fro
+            ok   = false;
+            note = add_note(note, 'coherent sum is ~0 so its phase is undefined');
+          else
+            ph_err = wrap_deg(180/pi*(angle(v_sum) - e_ph));
+            if abs(ph_err) > opt.tol_phase_deg
+              ok   = false;
+              note = add_note(note, sprintf('phase of sum off by %.4g deg', ph_err));
+              if abs(wrap_deg(180/pi*(-angle(v_sum) - e_ph))) <= opt.tol_phase_deg
+                note = add_note(note, 'looks conjugated');
+              end
+            end
+          end
+        end
+
+        % norm of the element phases: a second phase statistic that does
+        % not depend on the sum being well conditioned. A reference of zero
+        % means every element is real and non-negative.
+        if size(ref,2) >= 11 && ~isempty(ref{idx,11})
+          e_an = ref{idx,11};
+          an   = norm(angle(val(:)));
+          if abs(e_an) > 1e-9
+            an_pct = 100*abs(an - e_an)/abs(e_an);
+            an_ok  = an_pct <= tol;
+          else
+            an_ok  = an <= 1e-6;
+          end
+          if ~an_ok
+            ok = false;
+            if abs(e_an) > 1e-9
+              note = add_note(note, sprintf('angle norm off by %.4g%%', an_pct));
+            else
+              note = add_note(note, 'angle norm should be zero (all elements real and non-negative)');
+            end
+          end
+        end
+
         if ok
           status = 'PASS';
           n_pass = n_pass + 1;
@@ -320,6 +381,8 @@ for idx = 1:size(ref,1)
   results(end).kind      = kind;
   results(end).value     = shown;
   results(end).pct_err   = pct;
+  results(end).phase_err_deg  = ph_err;
+  results(end).angle_norm_pct = an_pct;
   results(end).status    = status;
   results(end).note      = note;
 
@@ -363,6 +426,13 @@ if isnan(pct)
 else
   str = sprintf('%s element off by %.4g%%', which_end, pct);
 end
+end
+
+% -------------------------------------------------------------------------
+
+function d = wrap_deg(d)
+% Wrap a difference in degrees to (-180, 180].
+d = mod(d + 180, 360) - 180;
 end
 
 % -------------------------------------------------------------------------
