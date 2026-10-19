@@ -210,8 +210,11 @@ for eta_idx = 1:Nx
     % HERE
 
     % rbin_rng: Using rbin_idx and bin_offset, determine the vector of
-    % range bins of the data_src matrix that will contribute to the sinc
-    % interpolation.
+    % relative (to the center of the sinc) range bins of the data_src
+    % matrix that will contribute to the sinc interpolation. Normally is
+    % -Ninterp:Ninterp, but needs to account for the edge cases so that
+    % your RCMC does not try to grab samples outside of the support which
+    % is 1 to Nt.
     % HERE
 
     % data_rcmc(rbin_idx,eta_idx): Apply the RCMC sinc interpolation filter
