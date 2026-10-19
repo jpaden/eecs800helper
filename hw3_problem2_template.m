@@ -240,7 +240,10 @@ end
 % data_img_afft: Loop through each range bin and apply the azimuth filter
 % with the azimuth/wavenumber window. The result will be the SAR image in
 % the range-Doppler domain (i.e. the SAR image with an azimuth-fft, hence
-% the variable name)
+% the variable name). When applying the carrier phase correction term, only
+% correct the relative carrier phase term (relative to the carrier phase
+% term from the center of our SAR aperture to the image pixel which is the
+% range of closest approach for our zero squint SAR beam).
 for rbin_idx = 1:Nt
   % HERE
 end
