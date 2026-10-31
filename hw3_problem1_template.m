@@ -235,7 +235,7 @@ for t_idx = 1:size(target.pos,2)
   % HERE
 
   % Store the result in target.td for debugging later
-  % HERE
+  target.td(:,t_idx) = td;
 
   % squint_ang: Calculate the instantaneous squint angle for each radar
   % position to the target
@@ -243,11 +243,13 @@ for t_idx = 1:size(target.pos,2)
 
   % data: using the Born approximation which assumes target scattering
   % behaves like a linear function, update the data matrix with the
-  % scattering from this target. Use the target.sigma_RCS to scale the
-  % output, sys.slowtime_fh for the along-track beam pattern,
-  % sys.fasttime_fh for the time domain window, assume there is no
-  % cross-track beam pattern, and assume a linear FM up-chirp whose
-  % transmission is centered on time-zero.
+  % scattering from this target:
+  % 1. Use the target.sigma_RCS to scale the output
+  % 2. sys.slowtime_fh for the along-track beam pattern centered on the
+  % scene center with beamwidth sys.beta_x
+  % 3. sys.fasttime_fh for the fast-time time-domain window
+  % 4. assume a linear FM up-chirp whose transmission is centered on
+  % time-zero and at complex baseband (demodulated from sys.fc)
   % HERE
 
 end

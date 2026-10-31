@@ -22,6 +22,14 @@ sys.beta_x = sys.beta_x_deg/180*pi;
 sys.beta_y_deg = 1.65;
 sys.beta_y = sys.beta_y_deg/180*pi;
 sys.vel = 7565;
+sys.fs = 600e6; % fs: complex baseband sampling frequency
+
+% fasttime_fh: fast-time window function handle
+sys.fasttime_fh = func2str(@(time_norm) tukeywin_cont(time_norm,0));
+
+% slowtime_fh: slow-time (squint-angle/beam-pattern) window function handle
+sys.slowtime_fh = func2str(@(eta_norm) tukeywin_cont(eta_norm,0));
+
 % path_dir: root to processing source code
 sys.path_dir = 'C:\git\eecs800\';
 % temp_dir: store raw and processed files here

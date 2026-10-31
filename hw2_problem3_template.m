@@ -336,9 +336,11 @@ for t_idx = 1:size(target.pos,2)
   good_mask_rlines = interp_input_rlines >= 1 & interp_input_rlines <= Nx_img;
 
   % sinc_window: create the along-track sinc-window sampled at the existing
-  % positions and peak centered on the desired target position. Component-wise
-  % multiply by the interp_window to truncate the sinc-window
-  sinc_window = sinc( ( x_img(interp_input_rlines(good_mask_rlines)) - target.pos(1,t_idx) ) / img.dx ) ...
+  % positions and peak centered on the desired target position. The sinc
+  % period must be the image pixel spacing, dx, so that the zero crossings
+  % land on the neighboring pixels. Component-wise multiply by the
+  % interp_window to truncate the sinc-window
+  sinc_window = sinc( ( x_img(interp_input_rlines(good_mask_rlines)) - target.pos(1,t_idx) ) / dx ) ...
     .* interp_window(good_mask_rlines);
 
   % range_cut: Resample in along-track at the particular target x-position for the
@@ -419,9 +421,11 @@ for t_idx = 1:size(target.pos,2)
   good_mask_rbins = interp_input_rbins >= 1 & interp_input_rbins <= Nr_img;
 
   % sinc_window: create the range sinc-window sampled at the existing range
-  % positions and peak centered on the desired target position. Component-wise
-  % multiply by the interp_window to truncate the sinc-window
-  sinc_window = sinc( ( r_img(interp_input_rbins(good_mask_rbins)) - target_range ) / img.dr ) ...
+  % positions and peak centered on the desired target position. The sinc
+  % period must be the image pixel spacing in range, c/2*dt, so that the zero
+  % crossings land on the neighboring pixels. Component-wise multiply by the
+  % interp_window to truncate the sinc-window
+  sinc_window = sinc( ( r_img(interp_input_rbins(good_mask_rbins)) - target_range ) / (c/2*dt) ) ...
     .* interp_window(good_mask_rbins);
 
   % along_track_cut: Resample in range at the particular target r-position for the

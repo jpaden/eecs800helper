@@ -18,5 +18,8 @@ beta_x: 0.006806784082777885
 beta_y_deg: 1.65
 beta_y: 0.028797932657906436
 vel: 7565.0
+fs: 6.0E8
+fasttime_fh: '@(time_norm)tukeywin_cont(time_norm,0)'
+slowtime_fh: '@(eta_norm)tukeywin_cont(eta_norm,0)'
 path_dir: C:\git\eecs800\
 temp_dir: C:\Temp\eecs800_sar_capella\

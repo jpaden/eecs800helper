@@ -1,4 +1,4 @@
-% Script which creates radar depth sounder yaml system file for hw2
+% Script which creates radar depth sounder yaml system file for hw3
 
 sys = [];
 sys.name = 'rds';

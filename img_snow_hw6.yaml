@@ -1,0 +1,7 @@
+name: snow
+sigma_x: 0.3
+sigma_r: 0.3
+dx: 0.3
+dr: 0.3
+x: 24.9
+r: 24.9

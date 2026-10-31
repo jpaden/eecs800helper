@@ -1,4 +1,4 @@
-% Script which creates radar depth sounder yaml image file
+% Script which creates radar depth sounder yaml image file for hw3
 
 sys_rds;
 
