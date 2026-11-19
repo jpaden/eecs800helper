@@ -1,8 +1,12 @@
 % 2026 EECS 800 hwA UAV SAR system design
 %
 % System design of a small UAV side-looking SAR: swath geometry, resolution,
-% antenna size and gain, link budget and platform velocity, data rate,
-% chirp parameters, and receiver gain needed to drive the ADC
+% antenna size and gain, link budget and platform velocity, data rate, and
+% receiver gain needed to drive the ADC
+%
+% The system is assumed to be an impulse radar (short pulse with no pulse
+% compression). The last section considers what the chirp parameters would
+% be for a deramp-on-receive system.
 
 %% 1. Setup
 
@@ -39,10 +43,11 @@ BW = 1e9;
 % fc: center frequency (Hz)
 fc = 9.6e9;
 
-% Pt: transmit power (W)
+% Pt: peak transmit power (W)
 Pt = 0.1;
 
-% bytes_per_sample: number of bytes recorded for each ADC sample
+% bytes_per_sample: number of bytes recorded for each complex ADC sample
+% (16 bit I and 16 bit Q, or 32 bits per complex sample)
 bytes_per_sample = 4;
 
 % SNR_adc_dB: ADC signal to quantization noise ratio at full scale (dB)
@@ -76,7 +81,7 @@ sigma_NESZ = 10^(-35/10);
 % fs: sampling frequency (Hz), 25% oversampling of the bandwidth
 % HERE
 
-% sigma_t: time resolution (s)
+% sigma_t: time resolution (s), also the duration of the transmitted impulse
 % HERE
 
 % sigma_r: range resolution (m)
@@ -141,7 +146,8 @@ sigma_NESZ = 10^(-35/10);
 % HERE
 
 % PRI: pulse repetition interval (s), set equal to the two-way travel time
-% across the swath
+% across the swath (the shortest PRI that keeps echoes from different
+% pulses from overlapping within the swath)
 % HERE
 
 % vel: platform velocity (m/s) that collects Ncoh pulses over the SAR
@@ -153,7 +159,11 @@ sigma_NESZ = 10^(-35/10);
 % Nsamp: number of fast-time samples across the swath
 % HERE
 
-% EPRI: effective pulse repetition interval (s), one record every dx
+% EPRI: effective pulse repetition interval (s), one record every dx. The
+% pulses transmitted within each EPRI are coherently averaged into one
+% record. dx is the maximum distance the radar can move before the Nyquist
+% criterion requires a new sample in order to capture the along-track
+% bandwidth needed for the desired SAR resolution.
 % HERE
 
 % data_rate: recorded data rate (bytes/s)
@@ -162,19 +172,7 @@ sigma_NESZ = 10^(-35/10);
 % data_rate_MBPS: recorded data rate (megabytes/s)
 % HERE
 
-%% 8. Chirp parameters and IF bandwidth, Tpd, Kr, and BW_if
-
-% Tpd: pulse duration (s), one chirp every dx
-% HERE
-
-% Kr: chirp rate (Hz/s)
-% HERE
-
-% BW_if: intermediate frequency (IF) bandwidth of the dechirped signal
-% across the swath (Hz)
-% HERE
-
-%% 9. ADC noise and receiver gain, P_fullscale_dBm, Pn_dBm, and G_rx_dB
+%% 8. ADC noise and receiver gain, P_fullscale_dBm, Pn_dBm, and G_rx_dB
 
 % P_fullscale: power of a full scale sine wave at the ADC input (W)
 % HERE
@@ -190,6 +188,32 @@ sigma_NESZ = 10^(-35/10);
 
 % G_rx_dB: receiver gain that puts the thermal noise 10 dB above the ADC
 % quantization noise (dB)
+% HERE
+
+%% 9. Deramp-on-receive system, dx_Tpd, Tpd, Kr, and BW_if
+
+% NOTE: This section is a side calculation of the chirp parameters and IF
+% bandwidth for a deramp-on-receive system. The rest of the assignment
+% assumes an impulse radar design.
+
+% dx_Tpd: along-track sample spacing for the deramp-on-receive system (m)
+% The maximum pulse duration for a deramp-on-receive system is the time
+% that it takes for the radar to travel the along-track sample spacing. For
+% an antenna with an along-track beamwidth exactly equal to the beamwidth
+% needed for the SAR aperture, this spacing would be dx. However, our
+% along-track beamwidth is beta_deg, which for the given parameters is
+% larger than needed. This means that the wavenumber (Doppler) bandwidth is
+% larger than it needs to be and we must sample faster.
+% HERE
+
+% Tpd: pulse duration (s), one chirp every dx_Tpd
+% HERE
+
+% Kr: chirp rate (Hz/s)
+% HERE
+
+% BW_if: intermediate frequency (IF) bandwidth of the dechirped signal
+% across the swath (Hz)
 % HERE
 
 hwA_uavsar_check;
