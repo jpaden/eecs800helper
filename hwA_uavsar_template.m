@@ -12,15 +12,13 @@
 
 clear
 
-my_path_dir = 'C:\git\eecs800\'; % Update this if needed
-
-path(pathdef)
-addpath(fullfile(my_path_dir));
-addpath(fullfile(my_path_dir,'eecs800helper'));
-
-physical_constants('c','BoltzmannConst'); % Loads c and Boltzmann's constant
-
 %% 2. Given parameters
+
+% BoltzmannConst: Boltzmann's constant (J/K)
+BoltzmannConst = 1.380650524e-23;
+
+% c: speed of light in free space (m/s)
+c = 2.997924580003452e+08;
 
 % NF: receiver noise figure (linear power ratio, 3 dB)
 NF = 10^(3/10);
