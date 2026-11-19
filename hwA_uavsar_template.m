@@ -62,6 +62,31 @@ Z0 = 50;
 % sigma_NESZ: required noise equivalent sigma zero (linear, -35 dB)
 sigma_NESZ = 10^(-35/10);
 
+% y0: ground range to the near edge of the swath (m)
+y0 = H * tand(inc0_deg);
+
+% y1: ground range to the far edge of the swath (m)
+y1 = H * tand(inc1_deg);
+
+% Plot the system geometry in the cross-track plane
+figure(1); clf;
+plot([0 1.1*y1], [0 0], 'k-', 'LineWidth', 2);
+hold on;
+plot([0 0], [0 H], 'k:');
+plot([0 y0], [H 0], 'b-');
+plot([0 y1], [H 0], 'r-');
+plot([y0 y1], [0 0], 'g-', 'LineWidth', 4);
+plot(0, H, 'kv', 'MarkerFaceColor', 'k');
+hold off;
+axis equal; grid on;
+xlabel('Ground range (m)');
+ylabel('Height (m)');
+title('UAV SAR system geometry');
+legend('Ground', 'Nadir', ...
+  sprintf('Near edge (%g deg)', inc0_deg), ...
+  sprintf('Far edge (%g deg)', inc1_deg), ...
+  'Swath', 'UAV', 'Location', 'northeast');
+
 %% 3. Swath range and time gate, r0, r1, t0, and t1
 
 % r0: slant range to the near edge of the swath (m)
