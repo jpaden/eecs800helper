@@ -30,10 +30,10 @@ sys.fs = 1; % fs: complex baseband sampling frequency
 sys.fasttime_fh = func2str(@(time_norm) tukeywin_cont(time_norm,0));
 
 % slowtime_fh: slow-time (squint-angle/beam-pattern) window function handle
-sys.slowtime_fh = func2str(@(eta_norm) tukeywin_cont(eta_norm,0));
+sys.slowtime_fh = func2str(@(squint_ang_normalized) tukeywin_cont(squint_ang_normalized,0));
 
 % elev_fh: elevation (elev-angle/beam-pattern) window function handle
-sys.elev_fh = func2str(@(elev_ang) tukeywin_cont(elev_ang,0));
+sys.elev_fh = func2str(@(elev_ang_normalized) tukeywin_cont(elev_ang_normalized,0));
 
 % path_dir: root to processing source code
 sys.path_dir = 'C:\git\eecs800\';

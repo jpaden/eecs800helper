@@ -20,7 +20,7 @@ beta_y: 0.01299038105676658
 vel: 125.0
 fs: 1.0
 fasttime_fh: '@(time_norm)tukeywin_cont(time_norm,0)'
-slowtime_fh: '@(eta_norm)tukeywin_cont(eta_norm,0)'
-elev_fh: '@(elev_ang)tukeywin_cont(elev_ang,0)'
+slowtime_fh: '@(squint_ang_normalized)tukeywin_cont(squint_ang_normalized,0)'
+elev_fh: '@(elev_ang_normalized)tukeywin_cont(elev_ang_normalized,0)'
 path_dir: C:\git\eecs800\
 temp_dir: C:\Temp\eecs800_sar_capella\
