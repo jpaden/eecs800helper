@@ -10,7 +10,7 @@
 
 %% 1. Setup
 
-clear
+clear;
 
 %% 2. Given parameters
 
@@ -29,11 +29,11 @@ Temp = 290;
 % H: height of the UAV above the ground (m)
 H = 100;
 
-% inc0_deg: incidence angle at the near edge of the swath (deg)
-inc0_deg = 30;
+% elev0_deg: elevation angle at the near edge of the swath (deg)
+elev0_deg = 30;
 
-% inc1_deg: incidence angle at the far edge of the swath (deg)
-inc1_deg = 60;
+% elev1_deg: elevation angle at the far edge of the swath (deg)
+elev1_deg = 60;
 
 % BW: transmit bandwidth (Hz)
 BW = 1e9;
@@ -61,10 +61,10 @@ Z0 = 50;
 sigma_NESZ = 10^(-35/10);
 
 % y0: ground range to the near edge of the swath (m)
-y0 = H * tand(inc0_deg);
+y0 = H * tand(elev0_deg);
 
 % y1: ground range to the far edge of the swath (m)
-y1 = H * tand(inc1_deg);
+y1 = H * tand(elev1_deg);
 
 % Plot the system geometry in the cross-track plane
 figure(1); clf;
@@ -81,14 +81,14 @@ xlabel('Ground range (m)');
 ylabel('Height (m)');
 title('UAV SAR system geometry');
 legend('Ground', 'Nadir', ...
-  sprintf('Near edge (%g deg)', inc0_deg), ...
-  sprintf('Far edge (%g deg)', inc1_deg), ...
+  sprintf('Near edge (%g deg)', elev0_deg), ...
+  sprintf('Far edge (%g deg)', elev1_deg), ...
   'Swath', 'UAV', 'Location', 'northeast');
 
 %% 3. Swath range and time gate, r0, r1, t0, and t1
 
 % r0: slant range to the near edge of the swath (m)
-% HERE (EXAMPLE: "r0 = H / cosd(inc0_deg);")
+% HERE (EXAMPLE: "r0 = H / cosd(elev0_deg);")
 
 % r1: slant range to the far edge of the swath (m)
 % HERE
@@ -122,12 +122,20 @@ legend('Ground', 'Nadir', ...
 % of the swath (m)
 % HERE
 
-% beta_deg: antenna beamwidth needed to cover the swath from inc0_deg to
-% inc1_deg (deg)
+% beta_elev: cross-track antenna beamwidth (rad) needed to cover the swath
+% from elev0_deg to elev1_deg
 % HERE
 
-% beta: antenna beamwidth (rad)
+% beta_sar_ideal: along-track antenna beamwidth (rad) needed to achieve the
+% desired along-track resolution (use the arc-length approximation with the
+% range to the far edge of the swath)
 % HERE
+
+% beta_sar: version 2 of the along-track antenna beamwidth (rad) where we
+% assume that the along-track beamwidth is equal to the beamwidth that was
+% calculated for beta_elev -- this is a reasonable approximate solution for
+% a commercial off the shelf horn antenna
+beta_sar = beta_elev; % This equation is given
 
 % l_x: along-track length of the antenna (m)
 % HERE
@@ -145,17 +153,17 @@ legend('Ground', 'Nadir', ...
 % HERE
 
 % Gr: receive antenna gain (linear)
-% HERE
+Gr = G; % This equation is given
 
 % Gt: transmit antenna gain (linear)
-% HERE
+Gt = G; % This equation is given
 
 %% 6. Link budget and platform velocity, Pn, Ncoh, PRI, and vel
 
 % sigma_rg: ground range resolution at the far edge of the swath (m)
 % HERE
 
-% A: scattering area of one resolution cell (m^2)
+% A: scattering area of one ground resolution cell (m^2)
 % HERE
 
 % dx: along-track sample spacing of the recorded data (m)
@@ -168,9 +176,8 @@ legend('Ground', 'Nadir', ...
 % sigma_NESZ at the far edge of the swath
 % HERE
 
-% PRI: pulse repetition interval (s), set equal to the two-way travel time
-% across the swath (the shortest PRI that keeps echoes from different
-% pulses from overlapping within the swath)
+% PRI: pulse repetition interval (s), set equal to twice the maximum
+% two-way travel time to the far edge of the swath
 % HERE
 
 % vel: platform velocity (m/s) that collects Ncoh pulses over the SAR
@@ -219,24 +226,24 @@ legend('Ground', 'Nadir', ...
 % bandwidth for a deramp-on-receive system. The rest of the assignment
 % assumes an impulse radar design.
 
-% dx_Tpd: along-track sample spacing for the deramp-on-receive system (m)
-% The maximum pulse duration for a deramp-on-receive system is the time
-% that it takes for the radar to travel the along-track sample spacing. For
-% an antenna with an along-track beamwidth exactly equal to the beamwidth
-% needed for the SAR aperture, this spacing would be dx. However, our
-% along-track beamwidth is beta_deg, which for the given parameters is
-% larger than needed. This means that the wavenumber (Doppler) bandwidth is
-% larger than it needs to be and we must sample faster.
+% dx_Tpd: the maximum along-track sample spacing for a real physical
+% aperture of l_x (m). This is half the physical aperture because synthetic
+% aperture radar moves both the transmit and receive antennas which doubles
+% the wavenumber bandwidth and therefore also doubles the Nyquist sampling
+% rate.
 % HERE
 
-% Tpd: pulse duration (s), one chirp every dx_Tpd
+% Tpd: pulse duration (s), set to be equal to the travel time for the radar
+% to move one sample spacing dx_Tpd considering the velocity vel
 % HERE
 
-% Kr: chirp rate (Hz/s)
+% Kr: chirp rate (Hz/s) from bandwidth, BW, and pulse duration, Tpd
 % HERE
 
 % BW_if: intermediate frequency (IF) bandwidth of the dechirped signal
-% across the swath (Hz)
+% across the swath (Hz). This would be the complex sampling rate required
+% for this deramp-on-receive system. Consider the maximum time gate across
+% the swath and the chirp rate, Kr.
 % HERE
 
 hwA_uavsar_check;
