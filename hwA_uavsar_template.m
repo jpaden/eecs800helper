@@ -12,6 +12,12 @@
 
 clear;
 
+if exist('eecs800helper','dir')
+  % Add the eecs800helper directory to the path if it exists. This is where
+  % the check function is usually located.
+  addpath(fullfile('.','eecs800helper'));
+end
+
 %% 2. Given parameters
 
 % BoltzmannConst: Boltzmann's constant (J/K)
