@@ -135,7 +135,7 @@ legend('Ground', 'Nadir', ...
 % assume that the along-track beamwidth is equal to the beamwidth that was
 % calculated for beta_elev -- this is a reasonable approximate solution for
 % a commercial off the shelf horn antenna
-beta_sar = beta_elev; % This equation is given
+% beta_sar = beta_elev; % Uncomment this line
 
 % l_x: along-track length of the antenna (m)
 % HERE
@@ -153,10 +153,10 @@ beta_sar = beta_elev; % This equation is given
 % HERE
 
 % Gr: receive antenna gain (linear)
-Gr = G; % This equation is given
+% Gr = G; % Uncomment this line
 
 % Gt: transmit antenna gain (linear)
-Gt = G; % This equation is given
+% Gt = G; % Uncomment this line
 
 %% 6. Link budget and platform velocity, Pn, Ncoh, PRI, and vel
 
