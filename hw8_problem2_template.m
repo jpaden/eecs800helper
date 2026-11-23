@@ -73,7 +73,7 @@ snaphu_en = false;
 
 % snaphu_path: path to the snaphu executable. On Linux this is the snaphu
 % file in the bin directory that snaphu was installed to.
-snaphu_path = 'C:\git\snaphu-win\build\snaphu-v2.0.7\bin\snaphu.exe'; % Update this if needed
+snaphu_path = 'C:\git\snaphu-win\build\windows\snaphu.exe'; % Update this if needed
 
 %% 3. Generate signal phase
 
