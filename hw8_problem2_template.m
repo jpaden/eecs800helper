@@ -65,12 +65,15 @@ signal_std = 1;
 % noise_std: standard deviation of the noise phase (radians/(2*pi))
 noise_std = 0.1;
 
-% snaphu_en: true to run snaphu in section 10. snaphu must be installed
-% (see the lecture notes) and snaphu_path must be set.
+% snaphu_en: true to run snaphu in section 10. snaphu must be installed and
+% snaphu_path must be set. To install snaphu on Windows follow
+% https://github.com/jpaden/snaphu-win. To install it on Linux see the
+% lecture notes.
 snaphu_en = false;
 
-% snaphu_path: path to the snaphu executable
-snaphu_path = '/kucresis/scratch/dangermo/scripts/snaphu/bin/snaphu'; % Update this if needed
+% snaphu_path: path to the snaphu executable. On Linux this is the snaphu
+% file in the bin directory that snaphu was installed to.
+snaphu_path = 'C:\git\snaphu-win\build\snaphu-v2.0.7\bin\snaphu.exe'; % Update this if needed
 
 %% 3. Generate signal phase
 
@@ -360,8 +363,9 @@ if snaphu_en
   fclose(fid);
 
   % cmd_str: command that runs snaphu. The inputs are the input file name,
-  % the number of rows (Nt), and the output file name.
-  cmd_str = sprintf('%s %s %d -o %s', snaphu_path, fn_snaphu_in, Nt, fn_snaphu_out);
+  % the number of rows (Nt), and the output file name. The double quotes
+  % allow the paths to have spaces in them.
+  cmd_str = sprintf('"%s" "%s" %d -o "%s"', snaphu_path, fn_snaphu_in, Nt, fn_snaphu_out);
   fprintf('Running: %s\n', cmd_str);
   system(cmd_str);
 
