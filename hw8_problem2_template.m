@@ -71,8 +71,10 @@ noise_std = 0.1;
 % lecture notes.
 snaphu_en = false;
 
-% snaphu_path: path to the snaphu executable. On Linux this is the snaphu
-% file in the bin directory that snaphu was installed to.
+% snaphu_path: path to the snaphu executable. On Windows, build.sh from
+% snaphu-win prints this path when it finishes (the "For Windows programs"
+% line). On Linux this is the snaphu file in the bin directory that snaphu
+% was installed to.
 snaphu_path = 'C:\git\snaphu-win\build\windows\snaphu.exe'; % Update this if needed
 
 %% 3. Generate signal phase
@@ -106,7 +108,10 @@ Nf_signal = 30;
 % Nf_signal pixels from each of the four edges of signal_filt.
 % HERE
 
-fprintf('Signal phase std %g\n', std(signal(:)));
+if exist('signal','var')
+  fprintf('Verify signal phase std %g is close to signal_std %g\n', ...
+    std(signal(:)), signal_std);
+end
 
 %% 4. Generate noise phase and absolute phase
 
@@ -134,7 +139,10 @@ Nf_noise = 3;
 % from each of the four edges of noise_filt.
 % HERE
 
-fprintf('Noise phase std %g\n', std(noise(:)));
+if exist('noise','var')
+  fprintf('Verify noise phase std %g is close to noise_std %g\n', ...
+    std(noise(:)), noise_std);
+end
 
 % phase_unwrapped: absolute (unwrapped) phase (Nt by Nx). This is the
 % correct answer that the phase unwrapping algorithms are compared to. Add
@@ -157,7 +165,7 @@ imagesc(phase_unwrapped);
 h_axes = gca;
 colormap(1-gray(256));
 hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2*\pi)');
+set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
 clim(phase_clim);
 title('Absolute phase')
 xlabel('Column');
@@ -168,7 +176,7 @@ imagesc(phase_wrapped);
 h_axes(end+1) = gca;
 colormap(1-gray(256));
 hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2*\pi)');
+set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
 title('Wrapped phase')
 xlabel('Column');
 ylabel('Row');
@@ -192,7 +200,7 @@ imagesc(row_grad_unwrapped);
 h_axes(end+1) = gca;
 colormap(1-gray(256));
 hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2*\pi)');
+set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
 title('Row gradient of unwrapped phase')
 xlabel('Column');
 ylabel('Row');
@@ -202,7 +210,7 @@ imagesc(col_grad_unwrapped);
 h_axes(end+1) = gca;
 colormap(1-gray(256));
 hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2*\pi)');
+set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
 title('Column gradient of unwrapped phase')
 xlabel('Column');
 ylabel('Row');
@@ -227,7 +235,7 @@ imagesc(row_grad_wrapped);
 h_axes(end+1) = gca;
 colormap(1-gray(256));
 hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2*\pi)');
+set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
 title('Row gradient of wrapped phase modulo [-0.5,0.5)')
 xlabel('Column');
 ylabel('Row');
@@ -237,7 +245,7 @@ imagesc(col_grad_wrapped);
 h_axes(end+1) = gca;
 colormap(1-gray(256));
 hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2*\pi)');
+set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
 title('Column gradient of wrapped phase modulo [-0.5,0.5)')
 xlabel('Column');
 ylabel('Row');
@@ -269,15 +277,17 @@ linkaxes(h_axes);
 % residues < 0.
 % HERE
 
-fprintf('Number of residues: %d positive, %d negative\n', ...
-  length(pos_rows), length(neg_rows));
+if exist('pos_rows','var') && exist('neg_rows','var')
+  fprintf('Number of residues: %d positive, %d negative\n', ...
+    length(pos_rows), length(neg_rows));
+end
 
 h_fig = figure(7); set(h_fig,'WindowStyle','docked'); clf;
 imagesc(residues);
 h_axes(end+1) = gca;
 colormap(1-gray(256));
 hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Residue phase/(2*\pi)');
+set(get(hcolor,'YLabel'),'String','Residue phase/(2\pi)');
 hold on;
 h_plot = plot(pos_cols,pos_rows,'r+','MarkerSize',10,'LineWidth',1);
 h_plot(2) = plot(neg_cols,neg_rows,'bo','MarkerSize',10,'LineWidth',1);
@@ -310,15 +320,17 @@ linkaxes(h_axes);
 % errors are whole cycles.
 % HERE
 
-fprintf('Simple unwrap: %d of %d pixels have an error\n', ...
-  sum(abs(phase_simple_error(:)) > 0.5), numel(phase_simple_error));
+if exist('phase_simple_error','var')
+  fprintf('Simple unwrap: %d of %d pixels have an error\n', ...
+    sum(abs(phase_simple_error(:)) > 0.5), numel(phase_simple_error));
+end
 
 h_fig = figure(8); set(h_fig,'WindowStyle','docked'); clf;
 imagesc(phase_simple);
 h_axes(end+1) = gca;
 colormap(1-gray(256));
 hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2*\pi)');
+set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
 clim(phase_clim);
 title('Simple unwrap')
 xlabel('Column');
@@ -329,7 +341,7 @@ imagesc(phase_simple_error);
 h_axes(end+1) = gca;
 colormap(1-gray(256));
 hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2*\pi)');
+set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
 title('Simple unwrap error')
 xlabel('Column');
 ylabel('Row');
@@ -387,15 +399,17 @@ if snaphu_en
   % phase_unwrapped from phase_snaphu.
   % HERE
 
-  fprintf('SNAPHU unwrap: %d of %d pixels have an error\n', ...
-    sum(abs(phase_snaphu_error(:)) > 0.5), numel(phase_snaphu_error));
+  if exist('phase_snaphu_error','var')
+    fprintf('SNAPHU unwrap: %d of %d pixels have an error\n', ...
+      sum(abs(phase_snaphu_error(:)) > 0.5), numel(phase_snaphu_error));
+  end
 
   h_fig = figure(10); set(h_fig,'WindowStyle','docked'); clf;
   imagesc(phase_snaphu);
   h_axes(end+1) = gca;
   colormap(1-gray(256));
   hcolor = colorbar;
-  set(get(hcolor,'YLabel'),'String','Phase/(2*\pi)');
+  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
   clim(phase_clim);
   title('SNAPHU unwrap')
   xlabel('Column');
@@ -406,7 +420,7 @@ if snaphu_en
   h_axes(end+1) = gca;
   colormap(1-gray(256));
   hcolor = colorbar;
-  set(get(hcolor,'YLabel'),'String','Phase/(2*\pi)');
+  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
   title('SNAPHU unwrap error')
   xlabel('Column');
   ylabel('Row');
