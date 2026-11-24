@@ -156,32 +156,42 @@ end
 % result modulo 1, and then subtract 0.5.
 % HERE
 
-% phase_clim: color limits used for every plot of unwrapped phase so that
-% the plots can be compared
-phase_clim = [min(phase_unwrapped(:)) max(phase_unwrapped(:))];
+% h_axes: axes handles of the figures. The axes are linked so that
+% zooming in one figure zooms all of the figures.
+h_axes = gobjects(0);
 
-h_fig = figure(1); set(h_fig,'WindowStyle','docked'); clf;
-imagesc(phase_unwrapped);
-h_axes = gca;
-colormap(1-gray(256));
-hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
-clim(phase_clim);
-title('Absolute phase')
-xlabel('Column');
-ylabel('Row');
+if exist('phase_unwrapped','var')
+  % phase_clim: color limits used for every plot of unwrapped phase so that
+  % the plots can be compared
+  phase_clim = [min(phase_unwrapped(:)) max(phase_unwrapped(:))];
 
-h_fig = figure(2); set(h_fig,'WindowStyle','docked'); clf;
-imagesc(phase_wrapped);
-h_axes(end+1) = gca;
-colormap(1-gray(256));
-hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
-title('Wrapped phase')
-xlabel('Column');
-ylabel('Row');
+  h_fig = figure(1); set(h_fig,'WindowStyle','docked'); clf;
+  imagesc(phase_unwrapped);
+  h_axes(end+1) = gca;
+  colormap(1-gray(256));
+  hcolor = colorbar;
+  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
+  clim(phase_clim);
+  title('Absolute phase')
+  xlabel('Column');
+  ylabel('Row');
+end
 
-linkaxes(h_axes);
+if exist('phase_wrapped','var')
+  h_fig = figure(2); set(h_fig,'WindowStyle','docked'); clf;
+  imagesc(phase_wrapped);
+  h_axes(end+1) = gca;
+  colormap(1-gray(256));
+  hcolor = colorbar;
+  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
+  title('Wrapped phase')
+  xlabel('Column');
+  ylabel('Row');
+end
+
+if ~isempty(h_axes)
+  linkaxes(h_axes);
+end
 
 %% 6. Gradients of unwrapped phase in figure 3, 4
 
@@ -195,27 +205,33 @@ linkaxes(h_axes);
 % dimension 2.
 % HERE
 
-h_fig = figure(3); set(h_fig,'WindowStyle','docked'); clf;
-imagesc(row_grad_unwrapped);
-h_axes(end+1) = gca;
-colormap(1-gray(256));
-hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
-title('Row gradient of unwrapped phase')
-xlabel('Column');
-ylabel('Row');
+if exist('row_grad_unwrapped','var')
+  h_fig = figure(3); set(h_fig,'WindowStyle','docked'); clf;
+  imagesc(row_grad_unwrapped);
+  h_axes(end+1) = gca;
+  colormap(1-gray(256));
+  hcolor = colorbar;
+  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
+  title('Row gradient of unwrapped phase')
+  xlabel('Column');
+  ylabel('Row');
+end
 
-h_fig = figure(4); set(h_fig,'WindowStyle','docked'); clf;
-imagesc(col_grad_unwrapped);
-h_axes(end+1) = gca;
-colormap(1-gray(256));
-hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
-title('Column gradient of unwrapped phase')
-xlabel('Column');
-ylabel('Row');
+if exist('col_grad_unwrapped','var')
+  h_fig = figure(4); set(h_fig,'WindowStyle','docked'); clf;
+  imagesc(col_grad_unwrapped);
+  h_axes(end+1) = gca;
+  colormap(1-gray(256));
+  hcolor = colorbar;
+  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
+  title('Column gradient of unwrapped phase')
+  xlabel('Column');
+  ylabel('Row');
+end
 
-linkaxes(h_axes);
+if ~isempty(h_axes)
+  linkaxes(h_axes);
+end
 
 %% 7. Gradients of wrapped phase modulo [-0.5,0.5) in figure 5, 6
 
@@ -230,27 +246,33 @@ linkaxes(h_axes);
 % dimension 2.
 % HERE
 
-h_fig = figure(5); set(h_fig,'WindowStyle','docked'); clf;
-imagesc(row_grad_wrapped);
-h_axes(end+1) = gca;
-colormap(1-gray(256));
-hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
-title('Row gradient of wrapped phase modulo [-0.5,0.5)')
-xlabel('Column');
-ylabel('Row');
+if exist('row_grad_wrapped','var')
+  h_fig = figure(5); set(h_fig,'WindowStyle','docked'); clf;
+  imagesc(row_grad_wrapped);
+  h_axes(end+1) = gca;
+  colormap(1-gray(256));
+  hcolor = colorbar;
+  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
+  title('Row gradient of wrapped phase modulo [-0.5,0.5)')
+  xlabel('Column');
+  ylabel('Row');
+end
 
-h_fig = figure(6); set(h_fig,'WindowStyle','docked'); clf;
-imagesc(col_grad_wrapped);
-h_axes(end+1) = gca;
-colormap(1-gray(256));
-hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
-title('Column gradient of wrapped phase modulo [-0.5,0.5)')
-xlabel('Column');
-ylabel('Row');
+if exist('col_grad_wrapped','var')
+  h_fig = figure(6); set(h_fig,'WindowStyle','docked'); clf;
+  imagesc(col_grad_wrapped);
+  h_axes(end+1) = gca;
+  colormap(1-gray(256));
+  hcolor = colorbar;
+  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
+  title('Column gradient of wrapped phase modulo [-0.5,0.5)')
+  xlabel('Column');
+  ylabel('Row');
+end
 
-linkaxes(h_axes);
+if ~isempty(h_axes)
+  linkaxes(h_axes);
+end
 
 %% 8. Residues in figure 7
 
@@ -282,21 +304,27 @@ if exist('pos_rows','var') && exist('neg_rows','var')
     length(pos_rows), length(neg_rows));
 end
 
-h_fig = figure(7); set(h_fig,'WindowStyle','docked'); clf;
-imagesc(residues);
-h_axes(end+1) = gca;
-colormap(1-gray(256));
-hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Residue phase/(2\pi)');
-hold on;
-h_plot = plot(pos_cols,pos_rows,'r+','MarkerSize',10,'LineWidth',1);
-h_plot(2) = plot(neg_cols,neg_rows,'bo','MarkerSize',10,'LineWidth',1);
-legend(h_plot,'Positive residue','Negative residue');
-title('Residues')
-xlabel('Column');
-ylabel('Row');
+if exist('residues','var')
+  h_fig = figure(7); set(h_fig,'WindowStyle','docked'); clf;
+  imagesc(residues);
+  h_axes(end+1) = gca;
+  colormap(1-gray(256));
+  hcolor = colorbar;
+  set(get(hcolor,'YLabel'),'String','Residue phase/(2\pi)');
+  if exist('pos_rows','var') && exist('neg_rows','var')
+    hold on;
+    h_plot = plot(pos_cols,pos_rows,'r+','MarkerSize',10,'LineWidth',1);
+    h_plot(2) = plot(neg_cols,neg_rows,'bo','MarkerSize',10,'LineWidth',1);
+    legend(h_plot,'Positive residue','Negative residue');
+  end
+  title('Residues')
+  xlabel('Column');
+  ylabel('Row');
+end
 
-linkaxes(h_axes);
+if ~isempty(h_axes)
+  linkaxes(h_axes);
+end
 
 %% 9. Simple unwrap in figure 8, 9
 
@@ -325,28 +353,34 @@ if exist('phase_simple_error','var')
     sum(abs(phase_simple_error(:)) > 0.5), numel(phase_simple_error));
 end
 
-h_fig = figure(8); set(h_fig,'WindowStyle','docked'); clf;
-imagesc(phase_simple);
-h_axes(end+1) = gca;
-colormap(1-gray(256));
-hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
-clim(phase_clim);
-title('Simple unwrap')
-xlabel('Column');
-ylabel('Row');
+if exist('phase_simple','var')
+  h_fig = figure(8); set(h_fig,'WindowStyle','docked'); clf;
+  imagesc(phase_simple);
+  h_axes(end+1) = gca;
+  colormap(1-gray(256));
+  hcolor = colorbar;
+  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
+  clim(phase_clim);
+  title('Simple unwrap')
+  xlabel('Column');
+  ylabel('Row');
+end
 
-h_fig = figure(9); set(h_fig,'WindowStyle','docked'); clf;
-imagesc(phase_simple_error);
-h_axes(end+1) = gca;
-colormap(1-gray(256));
-hcolor = colorbar;
-set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
-title('Simple unwrap error')
-xlabel('Column');
-ylabel('Row');
+if exist('phase_simple_error','var')
+  h_fig = figure(9); set(h_fig,'WindowStyle','docked'); clf;
+  imagesc(phase_simple_error);
+  h_axes(end+1) = gca;
+  colormap(1-gray(256));
+  hcolor = colorbar;
+  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
+  title('Simple unwrap error')
+  xlabel('Column');
+  ylabel('Row');
+end
 
-linkaxes(h_axes);
+if ~isempty(h_axes)
+  linkaxes(h_axes);
+end
 
 %% 10. SNAPHU unwrap in figure 10, 11
 
@@ -404,28 +438,34 @@ if snaphu_en
       sum(abs(phase_snaphu_error(:)) > 0.5), numel(phase_snaphu_error));
   end
 
-  h_fig = figure(10); set(h_fig,'WindowStyle','docked'); clf;
-  imagesc(phase_snaphu);
-  h_axes(end+1) = gca;
-  colormap(1-gray(256));
-  hcolor = colorbar;
-  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
-  clim(phase_clim);
-  title('SNAPHU unwrap')
-  xlabel('Column');
-  ylabel('Row');
+  if exist('phase_snaphu','var')
+    h_fig = figure(10); set(h_fig,'WindowStyle','docked'); clf;
+    imagesc(phase_snaphu);
+    h_axes(end+1) = gca;
+    colormap(1-gray(256));
+    hcolor = colorbar;
+    set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
+    clim(phase_clim);
+    title('SNAPHU unwrap')
+    xlabel('Column');
+    ylabel('Row');
+  end
 
-  h_fig = figure(11); set(h_fig,'WindowStyle','docked'); clf;
-  imagesc(phase_snaphu_error);
-  h_axes(end+1) = gca;
-  colormap(1-gray(256));
-  hcolor = colorbar;
-  set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
-  title('SNAPHU unwrap error')
-  xlabel('Column');
-  ylabel('Row');
+  if exist('phase_snaphu_error','var')
+    h_fig = figure(11); set(h_fig,'WindowStyle','docked'); clf;
+    imagesc(phase_snaphu_error);
+    h_axes(end+1) = gca;
+    colormap(1-gray(256));
+    hcolor = colorbar;
+    set(get(hcolor,'YLabel'),'String','Phase/(2\pi)');
+    title('SNAPHU unwrap error')
+    xlabel('Column');
+    ylabel('Row');
+  end
 
-  linkaxes(h_axes);
+  if ~isempty(h_axes)
+    linkaxes(h_axes);
+  end
 end
 
 hw8_problem2_check;
